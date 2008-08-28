@@ -50,6 +50,12 @@ class AreaDetail:
             new_val = getattr(put_area, field, None)
             if new_val:
                 setattr(area, field, new_val)
+                
+        new_val = getattr(put_area, "parentArea", None)
+        if new_val:
+            parentArea = Area.getByCode(new_val)
+            setattr(area, "parentArea", parentArea)  
+              
         area.save()
         
         # Return the serialized object, with either a 200 (OK) or a 201
