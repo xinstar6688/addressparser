@@ -1,6 +1,7 @@
+from StringIO import StringIO
 from address.models import Area
-from django.core import serializers
 from django.http import HttpResponseNotAllowed, HttpResponse, Http404
+from django.utils import simplejson
 
 class AreaDetail:
     def __call__(self, request, areaCode):
@@ -25,16 +26,29 @@ class AreaDetail:
         if not area:
             raise Http404('No %s matches the given query.' % "Area")
 
-
-        json = serializers.serialize("json", [area])
-        return HttpResponse(json, mimetype="application/json")
+        return HttpResponse(self.dump(area), mimetype="application/json")
             
+    def dump(self, obj):
+        fields = {}
+        for field in obj._meta.fields:
+            if field.name == "parentArea" :
+                parentArea = getattr(obj, field.name);
+                if parentArea:
+                    fields[field.name] = parentArea.code
+            else:    
+                fields[field.name] = getattr(obj, field.name)
+        json = StringIO()
+        simplejson.dump(fields, json, ensure_ascii=False)
+        return json.getvalue()
+    
+    def load(self, str):
+        return simplejson.load(StringIO(str))
+    
     def do_PUT(self):
         # Deserialize the object from the request. Serializers work the lists,
         # but we're only expecting one here. Any errors and we return a 400.
         try:
-            deserialized = serializers.deserialize("json", self.request.raw_post_data)
-            put_area = list(deserialized)[0].object
+            put_area = self.load(self.request.raw_post_data)
         except (ValueError, TypeError, IndexError):
             response = HttpResponse()
             response.status_code = 400
@@ -42,17 +56,19 @@ class AreaDetail:
             
         # Lookup or create a area, then update it
         area = Area.getByCode(self.areaCode)
+        created = False
         if not area:
             created = True
-            area = Area(self.areaCode)
+            area = Area(code = self.areaCode)
             
         for field in ["name", "middle", "unit"]:
-            new_val = getattr(put_area, field, None)
-            if new_val:
-                setattr(area, field, new_val)
+            if (put_area.has_key(field)) :
+                new_val = put_area[field]
+                if len(new_val) > 0:
+                    setattr(area, field, new_val)
                 
-        new_val = getattr(put_area, "parentArea", None)
-        if new_val:
+        new_val = put_area["parentArea"]
+        if len(new_val) > 0:
             parentArea = Area.getByCode(new_val)
             setattr(area, "parentArea", parentArea)  
               
@@ -60,8 +76,7 @@ class AreaDetail:
         
         # Return the serialized object, with either a 200 (OK) or a 201
         # (Created) status code.
-        json = serializers.serialize("json", [area])
-        response = HttpResponse(json, mimetype="application/json")
+        response = HttpResponse(self.dump(area), mimetype="application/json")
         if created:
             response.status_code = 201
             response["Location"] = "/areas/%s" % (area.code)

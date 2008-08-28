@@ -33,6 +33,12 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>org.restlet</groupId>
+			<artifactId>org.restlet.ext.json</artifactId>
+			<version>${restlet.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>net.sf.opencsv</groupId>
 			<artifactId>opencsv</artifactId>
 			<version>1.8</version>
