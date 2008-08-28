@@ -11,6 +11,7 @@
 
 	<modules>
 		<module>gwt</module>
+		<module>gae</module>
 	</modules>
 
     	<build>
