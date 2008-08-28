@@ -3,7 +3,7 @@ from google.appengine.ext import db
 
 class Area(BaseModel):
     code = db.StringProperty(required=True)
-    name = db.StringProperty(required=True)
+    name = db.StringProperty()
     middle = db.StringProperty()
     unit = db.StringProperty()
     parentArea = db.SelfReferenceProperty(collection_name = "children")

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>cn.muthos.address</groupId>
+		<artifactId>address-parser-parent</artifactId>
+		<version>0.1.0-SNAPSHOT</version>
+		<relativePath>../pom.xml</relativePath>
+	</parent>
+	<artifactId>address-parser-gae</artifactId>
+	<packaging>jar</packaging>
+	<name>Chinese Address Parser GAE</name>
+
+	<properties>
+		<restlet.version>1.1-M5</restlet.version>
+		<google.appengine.home>${env.GAE_HOME}</google.appengine.home>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.restlet</groupId>
+			<artifactId>org.restlet</artifactId>
+			<version>${restlet.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.noelios.restlet</groupId>
+			<artifactId>com.noelios.restlet</artifactId>
+			<version>${restlet.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>net.sf.opencsv</groupId>
+			<artifactId>opencsv</artifactId>
+			<version>1.8</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<repositories>
+		<repository>
+			<id>restlet</id>
+			<url>http://maven.restlet.org/</url>
+		</repository>
+	</repositories>
+
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-eclipse-plugin</artifactId>
+				<configuration>
+					<additionalBuildcommands>
+						<buildcommand>org.python.pydev.PyDevBuilder</buildcommand>
+					</additionalBuildcommands>
+					<additionalProjectnatures>
+						<projectnature>org.python.pydev.pythonNature</projectnature>
+					</additionalProjectnatures>
+					<additionalConfig>
+						<file>
+							<name>.pydevproject</name>
+							<content>
+								<![CDATA[<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?eclipse-pydev version="1.0"?>
+
+<pydev_project>
+	<pydev_property name="org.python.pydev.PYTHON_PROJECT_VERSION">python 2.5</pydev_property>
+	<pydev_pathproperty name="org.python.pydev.PROJECT_SOURCE_PATH">
+		<path>/book-gae/src/main/python</path>
+	</pydev_pathproperty>
+	<pydev_pathproperty name="org.python.pydev.PROJECT_EXTERNAL_SOURCE_PATH">
+		<path>${google.appengine.home}</path>
+		<path>${google.appengine.home}/lib/django</path>
+		<path>${google.appengine.home}/lib/yaml/lib</path>
+		<path>${google.appengine.home}/lib/webob</path>
+	</pydev_pathproperty>
+</pydev_project>]]>
+							</content>
+						</file>
+					</additionalConfig>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>
