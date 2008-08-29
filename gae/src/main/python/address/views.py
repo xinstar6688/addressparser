@@ -1,6 +1,6 @@
 from StringIO import StringIO
 from address.models import Area
-from django.http import HttpResponseNotAllowed, HttpResponse, Http404
+from django.http import HttpResponse, Http404
 from django.utils import simplejson
 from rest import Resource
 
@@ -36,11 +36,11 @@ class AreaDetail(Resource):
         for field in ["name", "middle", "unit"]:
             if (put_area.has_key(field)) :
                 new_val = put_area[field]
-                if len(new_val) > 0:
+                if new_val and len(new_val) > 0:
                     setattr(area, field, new_val)
                 
         new_val = put_area["parentArea"]
-        if len(new_val) > 0:
+        if new_val and len(new_val) > 0:
             parentArea = Area.getByCode(new_val)
             setattr(area, "parentArea", parentArea)  
               
