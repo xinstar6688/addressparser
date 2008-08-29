@@ -2,23 +2,11 @@ from StringIO import StringIO
 from address.models import Area
 from django.http import HttpResponseNotAllowed, HttpResponse, Http404
 from django.utils import simplejson
+from rest import Resource
 
-class AreaDetail:
-    def __call__(self, request, areaCode):
-        self.request = request
+class AreaDetail(Resource):
+    def setProperty(self, areaCode):
         self.areaCode = areaCode
-        
-        # Try to locate a handler method.
-        try:
-            callback = getattr(self, "do_%s" % request.method)
-        except AttributeError:
-            # This class doesn't implement this HTTP method, so return a
-            # 405 (method not allowed) response with the allowed methods.
-            allowed_methods = [m[3:] for m in dir(self) if m.startswith("do_")]
-            return HttpResponseNotAllowed(allowed_methods)
-        
-        # Call the looked-up method
-        return callback()
     
     def do_GET(self):
         # Look up the area (possibly throwing a 404)
@@ -27,22 +15,6 @@ class AreaDetail:
             raise Http404('No %s matches the given query.' % "Area")
 
         return HttpResponse(self.dump(area), mimetype="application/json")
-            
-    def dump(self, obj):
-        fields = {}
-        for field in obj.properties().keys():
-            if field == "parentArea" :
-                parentArea = getattr(obj, field);
-                if parentArea:
-                    fields[field] = parentArea.code
-            else:    
-                fields[field] = getattr(obj, field)
-        json = StringIO()
-        simplejson.dump(fields, json, ensure_ascii=False)
-        return json.getvalue()
-    
-    def load(self, str):
-        return simplejson.load(StringIO(str))
     
     def do_PUT(self):
         # Deserialize the object from the request. Serializers work the lists,
@@ -95,3 +67,19 @@ class AreaDetail:
         response = HttpResponse()
         response.status_code = 204
         return response
+            
+    def dump(self, obj):
+        fields = {}
+        for field in obj.properties().keys():
+            if field == "parentArea" :
+                parentArea = getattr(obj, field);
+                if parentArea:
+                    fields[field] = parentArea.code
+            else:    
+                fields[field] = getattr(obj, field)
+        json = StringIO()
+        simplejson.dump(fields, json, ensure_ascii=False)
+        return json.getvalue()
+    
+    def load(self, str):
+        return simplejson.load(StringIO(str))
