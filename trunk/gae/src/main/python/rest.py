@@ -30,6 +30,13 @@ class Resource:
         return HttpResponse(self.dump(resource), mimetype="application/json")   
 
     def do_PUT(self):
+        try:
+            putResource = simplejson.load(StringIO(self.request.raw_post_data))
+        except (ValueError, TypeError, IndexError):
+            response = HttpResponse()
+            response.status_code = 400
+            return response
+            
         # Lookup or create a area, then update it
         resource = self.getResource()
         created = False
@@ -37,7 +44,7 @@ class Resource:
             created = True
             resource = self.newResource()
             
-        self.load(resource)      
+        self.load(resource, putResource)      
         resource.save()
         
         # Return the serialized object, with either a 200 (OK) or a 201
@@ -74,20 +81,13 @@ class Resource:
     def getUri(self):
         raise AttributeError
     
-    def load(self, obj):        
-        try:
-            put_area = simplejson.load(StringIO(self.request.raw_post_data))
-        except (ValueError, TypeError, IndexError):
-            response = HttpResponse()
-            response.status_code = 400
-            return response
-            
+    def load(self, obj, putResource):        
         specialLoaders = self.getFieldLoader();
         for field in obj.properties().keys():
-            if (put_area.has_key(field)) :
-                newVal = put_area[field]
+            if field in putResource :
+                newVal = putResource[field]
                 if newVal and len(newVal) > 0:
-                    if specialLoaders.has_key(field):
+                    if field in specialLoaders:
                         specialLoaders[field](obj, field, newVal)
                     else:    
                         setattr(obj, field, newVal)
@@ -99,7 +99,7 @@ class Resource:
         fields = {}
         specialDumbers = self.getFieldsDumper();
         for field in obj.properties().keys():
-            if specialDumbers.has_key(field):
+            if field in specialDumbers:
                 fields[field] = specialDumbers[field](obj, field)
             else:    
                 fields[field] = getattr(obj, field)
