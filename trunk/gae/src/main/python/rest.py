@@ -105,7 +105,10 @@ class Resource:
                 fields[field] = getattr(obj, field)
         json = StringIO()
         simplejson.dump(fields, json, ensure_ascii=False)
-        return json.getvalue()
+        if "callback" in self.request.GET:
+            return ('%s(%s);' % (self.request.GET['callback'], json.getvalue()))
+        else:
+            return json.getvalue()
 
     def getFieldsDumper(self):
         return {}
