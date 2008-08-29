@@ -1,7 +1,6 @@
-from appengine_django.models import BaseModel
 from google.appengine.ext import db
 
-class Area(BaseModel):
+class Area(db.Model):
     code = db.StringProperty(required=True)
     name = db.StringProperty()
     middle = db.StringProperty()
@@ -15,5 +14,5 @@ class Area(BaseModel):
     def getByCode(cls, code):
         return cls.gql("WHERE code=:1", code).get()
     
-class ExcludeWord(BaseModel):
+class ExcludeWord(db.Model):
     word = db.StringProperty()

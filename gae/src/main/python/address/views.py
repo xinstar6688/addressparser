@@ -30,13 +30,13 @@ class AreaDetail:
             
     def dump(self, obj):
         fields = {}
-        for field in obj._meta.fields:
-            if field.name == "parentArea" :
-                parentArea = getattr(obj, field.name);
+        for field in obj.properties().keys():
+            if field == "parentArea" :
+                parentArea = getattr(obj, field);
                 if parentArea:
-                    fields[field.name] = parentArea.code
+                    fields[field] = parentArea.code
             else:    
-                fields[field.name] = getattr(obj, field.name)
+                fields[field] = getattr(obj, field)
         json = StringIO()
         simplejson.dump(fields, json, ensure_ascii=False)
         return json.getvalue()

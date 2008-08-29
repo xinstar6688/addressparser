@@ -30,15 +30,16 @@ public class DataImporter {
 		List<Area> areas = csv.parse(strat, reader);
 		List<String> errorCodes = new ArrayList<String>();
 		int count = 0;
-		for (Area area : areas) {
-			Response response = client.put("http://localhost:8000/areas/"
+		//for (Area area : areas) {
+			Area area = areas.get(0);
+			Response response = client.put("http://localhost:8080/areas/"
 					+ area.getCode() + "/", new JsonRepresentation(area));
 			System.out.println(++count + ":" + area.getCode());
 			if (response.getStatus() ==  Status.SERVER_ERROR_INTERNAL) {
 				errorCodes.add(area.getCode());
 			}
 			Thread.sleep(2000);
-		}
+		//}
 		System.out.println(errorCodes);
 	}
 
