@@ -1,6 +1,6 @@
-from django.conf.urls.defaults import handler404, handler500, patterns
-from address.views import AreaDetail
+from django.conf.urls.defaults import patterns
+from address.services import AreaResource
 
 urlpatterns = patterns('',
-    (r'^areas/([\w-]+)/$', AreaDetail())
+    (r'^areas/([\w-]+)/$', AreaResource())
 )

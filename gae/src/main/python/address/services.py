@@ -1,7 +1,7 @@
 from address.models import Area
 from rest import Resource
 
-class AreaDetail(Resource):
+class AreaResource(Resource):
     def setProperty(self, areaCode):
         self.areaCode = areaCode
         
