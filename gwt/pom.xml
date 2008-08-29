@@ -70,11 +70,11 @@
 				<configuration>
 					<logLevel>INFO</logLevel>
 					<runTarget>
-						${pom.groupId}.BookPedia/index.html
+						${pom.groupId}.AddressParser/index.html
 					</runTarget>
 					<compileTargets>
 						<param>
-							${pom.groupId}.BookPedia
+							${pom.groupId}.AddressParser
 						</param>
 					</compileTargets>
 					<noServer>true</noServer>
