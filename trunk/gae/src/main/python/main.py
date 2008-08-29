@@ -1,6 +1,4 @@
 import logging, os
-
-# Google App Engine imports.
 from google.appengine.ext.webapp import util
 
 # Force Django to reload its settings.
@@ -10,30 +8,28 @@ settings._target = None
 # Must set this env var before importing any part of Django
 os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 
-import logging
-import django.core.handlers.wsgi
-import django.core.signals
-import django.db
-import django.dispatch.dispatcher
+from django.dispatch import dispatcher
+from django.core.handlers.wsgi import WSGIHandler
+from django.core.signals import got_request_exception
+from django.db import _rollback_on_exception
 
 def log_exception(*args, **kwds):
-  logging.exception('Exception in request:')
+    logging.exception('Exception in request:')
 
 # Log errors.
-django.dispatch.dispatcher.connect(
-   log_exception, django.core.signals.got_request_exception)
+dispatcher.connect(
+   log_exception, got_request_exception)
 
 # Unregister the rollback event handler.
-django.dispatch.dispatcher.disconnect(
-    django.db._rollback_on_exception,
-    django.core.signals.got_request_exception)
+dispatcher.disconnect(
+    _rollback_on_exception, got_request_exception)
 
 def main():
-  # Create a Django application for WSGI.
-  application = django.core.handlers.wsgi.WSGIHandler()
-
-  # Run the WSGI CGI handler with that application.
-  util.run_wsgi_app(application)
+    # Create a Django application for WSGI.
+    application = WSGIHandler()
+    
+    # Run the WSGI CGI handler with that application.
+    util.run_wsgi_app(application)
 
 if __name__ == '__main__':
-  main()
+    main()
