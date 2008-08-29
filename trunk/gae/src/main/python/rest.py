@@ -1,5 +1,7 @@
+from django.http import HttpResponseNotAllowed
+
 class Resource:
-    def __call__(self, request, *args):
+    def __call__(self, request, args):
         self.request = request
         self.setProperty(args)
         # Try to locate a handler method.
