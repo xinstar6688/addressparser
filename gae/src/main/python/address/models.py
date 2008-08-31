@@ -6,6 +6,7 @@ class Area(db.Model):
     middle = db.StringProperty()
     unit = db.StringProperty()
     parentArea = db.SelfReferenceProperty(collection_name = "children")
+    lastModified=db.DateTimeProperty(auto_now=True);
     
     def hasChild(self):
         return len(self.children) > 0

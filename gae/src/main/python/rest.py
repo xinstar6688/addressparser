@@ -1,6 +1,7 @@
 from StringIO import StringIO
 from django.http import HttpResponseNotAllowed, HttpResponse, Http404
 from django.utils import simplejson
+from google.appengine.api import memcache
 
 class Resource:
     def __call__(self, request, args):
@@ -20,14 +21,49 @@ class Resource:
     
     def setProperty(self, *args):
         pass
+    
+    def isUnmodified(self, response):
+        etag = self.request.META.get("ETAG", None)
+        if etag and etag == response.headers.get("ETag", None):
+            return True
+        lastModified = self.request.META.get("Last-Modified", None)
+        if lastModified and lastModified == response.headers.get("Last-Modified", None):
+            return True
+        return False
+    
+    lastModifiedField = "lastModified"
+    eTagField = "eTag"
+    hiddenFields = (lastModifiedField, eTagField)
+    def setConditional(self, response, resource):
+        lastModified = getattr(resource, self.lastModifiedField, None)
+        if lastModified:
+            response.headers["Last-Modified"] = lastModified.strftime("%a, %d %b %Y %H:%M:%S GMT")           
+        eTag = getattr(resource, self.eTagField, None)
+        if eTag:
+            response.headers["ETag"] = eTag      
 
+    caching = True
+    cacheTime = 300
     def do_GET(self):
+        if self.caching:
+            response = memcache.get(self.request.path)
+            if response:
+                if self.isUnmodified(response):
+                    response = HttpResponse()
+                    response.status_code = 304
+                return response
+
         # Look up the area (possibly throwing a 404)
         resource =  self.getResource()   
         if not resource:
             raise Http404('No Resource matches the given query.')
 
-        return HttpResponse(self.dump(resource), mimetype="application/json")   
+        response = HttpResponse(self.dump(resource), mimetype="application/json")
+        self.setConditional(response, resource)
+        
+        if self.caching:
+            memcache.set(self.request.path, response, self.cacheTime)
+        return response
 
     def do_PUT(self):
         try:
@@ -53,6 +89,9 @@ class Resource:
         if created:
             response.status_code = 201
             response["Location"] = self.getUri()
+
+        if self.caching:
+            memcache.delete(self.request.path)
         return response       
     
     def do_DELETE(self):
@@ -67,6 +106,10 @@ class Resource:
         # Return a 204 ("no content")
         response = HttpResponse()
         response.status_code = 204
+
+        if self.caching:
+            memcache.delete(self.request.path)
+            
         return response
     
     def getResource(self):
@@ -84,6 +127,9 @@ class Resource:
     def load(self, obj, putResource):        
         specialLoaders = self.getFieldLoader();
         for field in obj.properties().keys():
+            if field in self.hiddenFields:
+                continue
+            
             if field in putResource :
                 newVal = putResource[field]
                 if newVal and len(newVal) > 0:
@@ -99,6 +145,9 @@ class Resource:
         fields = {}
         specialDumbers = self.getFieldsDumper();
         for field in obj.properties().keys():
+            if field in self.hiddenFields:
+                continue
+            
             if field in specialDumbers:
                 fields[field] = specialDumbers[field](obj, field)
             else:    
