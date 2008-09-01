@@ -1,77 +1,71 @@
 from StringIO import StringIO
-from django.http import HttpResponseNotAllowed, HttpResponse, Http404
 from django.utils import simplejson
 from google.appengine.api import memcache
+from google.appengine.ext.webapp import RequestHandler
 
-class Resource:
-    def __call__(self, request, args):
-        self.request = request
-        self.setProperty(args)
-        # Try to locate a handler method.
-        try:
-            callback = getattr(self, "do_%s" % request.method)
-        except AttributeError:
-            # This class doesn't implement this HTTP method, so return a
-            # 405 (method not allowed) response with the allowed methods.
-            allowed_methods = [m[3:] for m in dir(self) if m.startswith("do_")]
-            return HttpResponseNotAllowed(allowed_methods)
-        
-        # Call the looked-up method
-        return callback()
-    
+class Resource(RequestHandler):  
     def setProperty(self, *args):
         pass
     
-    def isUnmodified(self, response):
-        etag = self.request.META.get("ETAG", None)
-        if etag and etag == response.headers.get("ETag", None):
+    def isUnmodified(self, resource):
+        etag = self.request.headers.get("ETag", None)
+        if etag and etag == getattr(resource, self.eTagField, None):
             return True
-        lastModified = self.request.META.get("Last-Modified", None)
-        if lastModified and lastModified == response.headers.get("Last-Modified", None):
-            return True
+        lastModified = self.request.headers.get("Last-Modified", None)
+        if lastModified:
+            oldLastModified = getattr(resource, self.lastModifiedField, None) 
+            if oldLastModified and oldLastModified.strftime("%a, %d %b %Y %H:%M:%S GMT"):
+                return True
         return False
     
     lastModifiedField = "lastModified"
     eTagField = "eTag"
     hiddenFields = (lastModifiedField, eTagField)
-    def setConditional(self, response, resource):
+    def setConditional(self, resource):
         lastModified = getattr(resource, self.lastModifiedField, None)
         if lastModified:
-            response.headers["Last-Modified"] = lastModified.strftime("%a, %d %b %Y %H:%M:%S GMT")           
+            self.response.headers["Last-Modified"] = lastModified.strftime("%a, %d %b %Y %H:%M:%S GMT")           
         eTag = getattr(resource, self.eTagField, None)
         if eTag:
-            response.headers["ETag"] = eTag      
+            self.response.headers["ETag"] = eTag      
 
     caching = True
     cacheTime = 300
-    def do_GET(self):
+    def get(self, args):
+        self.setProperty(args);
+        
         if self.caching:
-            response = memcache.get(self.request.path)
-            if response:
-                if self.isUnmodified(response):
-                    response = HttpResponse()
-                    response.status_code = 304
-                return response
+            resource = memcache.get(self.request.uri)
+            if resource:
+                if self.isUnmodified(resource):
+                    self.response.set_status(304)
+                    return
+                self.writeToResponse(resource)
+                return
 
         # Look up the area (possibly throwing a 404)
         resource =  self.getResource()   
         if not resource:
-            raise Http404('No Resource matches the given query.')
-
-        response = HttpResponse(self.dump(resource), mimetype="application/json")
-        self.setConditional(response, resource)
+            self.response.set_status(404)
+            return
+        self.writeToResponse(resource)
         
         if self.caching:
-            memcache.set(self.request.path, response, self.cacheTime)
-        return response
-
-    def do_PUT(self):
+            memcache.set(self.request.uri, resource, self.cacheTime)
+            
+    def writeToResponse(self, resource):
+        self.response.out.write(self.dump(resource))
+        self.response.headers["Context-Type"] ="application/json"
+        self.setConditional(resource)        
+ 
+    def put(self, args):
+        self.setProperty(args);
+        
         try:
-            putResource = simplejson.load(StringIO(self.request.raw_post_data))
+            putResource = simplejson.load(self.request.body_file)
         except (ValueError, TypeError, IndexError):
-            response = HttpResponse()
-            response.status_code = 400
-            return response
+            self.response.set_status(400)
+            return
             
         # Lookup or create a area, then update it
         resource = self.getResource()
@@ -85,32 +79,32 @@ class Resource:
         
         # Return the serialized object, with either a 200 (OK) or a 201
         # (Created) status code.
-        response = HttpResponse(self.dump(resource), mimetype="application/json")
+        self.response.out.write(self.dump(resource))
+        self.response.headers["Context-Type"] = "application/json"
         if created:
-            response.status_code = 201
-            response["Location"] = self.getUri()
+            self.response.set_status(201)
+            self.response.headers["Location"] = self.getUri()
 
         if self.caching:
-            memcache.delete(self.request.path)
-        return response       
+            memcache.delete(self.request.uri)     
     
-    def do_DELETE(self):
+    def delete(self, args):
+        self.setProperty(args);
+        
         # Look up the area...
         resource = self.getResource()    
         if not resource:
-            raise Http404('No Resource matches the given query.')
+            self.response.set_status(404)
+            return
 
         # ... and delete it.
         self.deleteResource(resource)
 
         # Return a 204 ("no content")
-        response = HttpResponse()
-        response.status_code = 204
+        self.response.set_status(204)
 
         if self.caching:
-            memcache.delete(self.request.path)
-            
-        return response
+            memcache.delete(self.request.uri)
     
     def getResource(self):
         raise AttributeError
