@@ -1,5 +1,11 @@
 from address.models import Area
+from google.appengine.ext.webapp import RequestHandler
 from rest import Resource
+
+class AreaParser(RequestHandler):
+    def get(self):
+        address = self.request.get("q")
+        print address
 
 class AreaResource(Resource):
     def setProperty(self, areaCode):
