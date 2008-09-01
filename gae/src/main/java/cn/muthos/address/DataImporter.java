@@ -34,6 +34,7 @@ public class DataImporter {
 			Response response = client.put("http://localhost:8080/areas/"
 					+ area.getCode() + "/", new JsonRepresentation(area));
 			System.out.println(++count + ":" + area.getCode());
+			System.out.println(response.getEntity().getText());
 			if (response.getStatus() ==  Status.SERVER_ERROR_INTERNAL) {
 				errorCodes.add(area.getCode());
 			}

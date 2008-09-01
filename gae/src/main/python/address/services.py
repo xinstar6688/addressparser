@@ -15,7 +15,7 @@ class AreaResource(Resource):
         resource.delete();
     
     def getUri(self):
-        return "/areas/%s" % (self.code)
+        return "/areas/%s" % (self.areaCode)
     
     def getFieldLoader(self):
         def loadParent(obj, field, newVal):
