@@ -1,84 +1,94 @@
+# -*- coding: utf-8 -*-
+
 from google.appengine.api import memcache
 
 class AreaParser:
     @classmethod
-    def isChild(cls, parent, child):        
-        if child.get("parent", None) == parent["code"] :
-            return True
-        
-        father = AreaCache.getParent(child)
-        if father:
-            return father.get("parent", None) == parent["code"]
-        return False
+    def parse(cls, address, start = 0, parent = None):
+        """ 从指定地址中分析出包含的区域
+        """
+        partAddress = address[start:]
+        for i in range(len(partAddress)):
+            # 获取匹配的区域， 如果指定parent， 则匹配的区域必须是parent的下级区域
+            areas = [area for area in AreaCache.getMatchedAreas(partAddress[i:]) if  (not parent) or cls.isChild(parent, area)]           
+            
+            if len(areas) > 0:
+                followStart = i + len(areas[0]["name"])                
+               
+                #如果区域后面跟着特定的词语，如”路“， 则忽略这个区域
+                #如”湖南路“就不应该认为是”湖南省“
+                if ExcludeWordCache.isStartWith(partAddress[followStart:]):
+                    continue
+                
+                #如果区域还有下级区域的话，则在后面字符串中继续查找下级区域，然后用找到的下级区域代替上级区域
+                childrenAreas = []
+                for area in areas:
+                    if area["hasChild"]:
+                        children = cls.parse(address, start + followStart, area)
+                        if len(children) > 0: 
+                            childrenAreas.extend(children)
+                if len(childrenAreas) > 0:
+                    areas = childrenAreas
+                     
+                #如果在结果集中同时存在上级和下级区域，则去除上级区域                
+                parentAreas = []
+                for area in areas:
+                    parentAreas.extend(cls.getParents(area)) 
+                 
+                for area in parentAreas:
+                    if area in areas:
+                        areas.remove(area)   
+                               
+                #如果存在多个结果的时候，在后续字符中查找上级区域，找到的必然是正确的结果               
+                if len(areas) > 1:
+                    matchedParents = []
+                    for area in areas:
+                        if cls.hasParent(area, address[followStart:]):
+                            matchedParents.append(area);
+
+                    if len(matchedParents) > 0:
+                        return matchedParents
+
+                return areas
+            
+        return []
+
+    @classmethod
+    def isChild(cls, parent, child):  
+        """ 判断parent是否是child的上级区域
+        """
+        return parent in cls.getParents(child)      
     
     @classmethod
     def getParents(cls, area):
+        """ 获取指定区域的所有上级区域
+        """
         parents = []
         parent = AreaCache.getParent(area);
         if parent:
             parents.append(parent)
             parents.extend(cls.getParents(parent))    
-        return parents    
+        return parents       
     
     @classmethod
-    def parse(cls, str, start = 0, parent = None):
-        address = str[start:]
-        for i in range(len(address)):
-            cities = [city for city in AreaCache.getMatchedCities(address[i:]) if  (not parent) or cls.isChild(parent, city)]           
-            
-            if len(cities) > 0:
-                followStart = start + i + len(cities[0]["name"])                
-               
-                if ExcludeWordCache.isStartWith(address[followStart:]):
-                    continue
-                
-                norrowCities = []
-                for city in cities:
-                    if city["hasChild"]:
-                        followCities = cls.parse(str, followStart, city)
-                        if len(followCities) > 0: 
-                            norrowCities.extend(followCities)
-                if len(norrowCities) > 0:
-                    cities = norrowCities
-                                
-                parentCities = []
-                for city in cities:
-                    parentCities.extend(cls.getParents(city)) 
-                 
-                for city in parentCities:
-                    if city in cities:
-                        cities.remove(city)   
-                               
-                if len(cities) > 1:
-                    matchedProvicens = []
-                    for city in cities:
-                        if cls.hasMatchedProvicen(city, str[0:start + i]) or cls.hasMatchedProvicen(city, str[followStart:]):
-                            matchedProvicens.append(city);
-
-                    if len(matchedProvicens) > 0:
-                        return matchedProvicens
-
-                return cities
-            
-        return []
-    
-    @classmethod
-    def hasMatchedProvicen(cls, city, string):
-        parent = AreaCache.getParent(city)
-        if parent:            
-            if cls.hasMatchedParent(parent["name"], string):
+    def hasParent(cls, area, string):
+        """ 在string中是否包含指定区域的上级区域
+        """
+        parents = cls.getParents(area)
+        for parent in parents:            
+            if cls.hasAreaName(parent["name"], string):
                 return True                                     
-            else:
-                return cls.hasMatchedProvicen(parent, string)
         return False
     
     @classmethod
-    def hasMatchedParent(cls, parentName, string):
-        position = string.find(parentName)
+    def hasAreaName(cls, areaName, string):
+        """ 判断在string中是否包含区域名称
+        """
+        position = string.find(areaName)
         if position >= 0:
-            followString = string[position + len(parentName):]
+            followString = string[position + len(areaName):]
             if ExcludeWordCache.isStartWith(followString):
-                return cls.hasMatchedParent(parentName, followString)
+                return cls.hasAreaName(areaName, followString)
             else:
                 return True;
            
@@ -158,16 +168,16 @@ class AreaCache(AbstractCache):
         parentMap[""].append(obj)        
                 
     @classmethod
-    def getMatchedCities(cls, address):
-        return cls.doGetMatchedCities(cls.getCache(), address)
+    def getMatchedAreas(cls, address):
+        return cls.doGetMatchedAreas(cls.getCache(), address)
 
     @classmethod
-    def doGetMatchedCities(cls, areaMap, address):
+    def doGetMatchedAreas(cls, areaMap, address):
         cities = []
         if len(address) > 0:
             char = address[0]
             if areaMap.has_key(char):
-                cities = cls.doGetMatchedCities(areaMap[char], address[1:])
+                cities = cls.doGetMatchedAreas(areaMap[char], address[1:])
 
         if len(cities) == 0 and areaMap.has_key(""):
             cities = areaMap[""]

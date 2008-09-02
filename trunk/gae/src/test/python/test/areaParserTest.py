@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 from address.models import AreaCache, ExcludeWordCache, AreaParser
 from test import BaseTestCase, areas, excludeWords
 
