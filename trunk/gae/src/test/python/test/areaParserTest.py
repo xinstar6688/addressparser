@@ -1,7 +1,35 @@
 # -*- coding: utf-8 -*-
 
 from address.models import AreaCache, ExcludeWordCache, AreaParser
+from address.services import AreaParserService
 from test import BaseTestCase, areas, excludeWords
+
+class AreaParserServiceTest(BaseTestCase):
+    def setUp(self):
+        BaseTestCase.setUp(self)
+        for area in areas:
+            AreaCache.put(area)
+        for word in excludeWords:
+            ExcludeWordCache.put(word) 
+            
+    def testGet(self):
+        service = AreaParserService()
+        
+        request = self.mocker.mock()
+        request.get("q")
+        self.mocker.result(u"吉林长春XXX路234号")
+        service.request = request   
+
+        response = self.mocker.mock()
+        out = self.mocker.mock()
+        response.out
+        self.mocker.result(out)
+        out.write(u'{"areas":[{"code":"502000","name":"长春市","parent":{"code":"500000","name":"吉林省"}}]}')
+        service.response = response
+        
+        self.mocker.replay()
+        
+        service.get()
 
 class AreaParserTest(BaseTestCase):
     def setUp(self):

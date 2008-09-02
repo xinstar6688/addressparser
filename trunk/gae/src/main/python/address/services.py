@@ -1,12 +1,28 @@
 from address.models import ExcludeWordCache, AreaCache
 from django.utils import simplejson
 from google.appengine.ext.webapp import RequestHandler
+from address.models import AreaParser  
+import urllib
 
-class AreaParser(RequestHandler):
+class AreaParserService(RequestHandler):
     def get(self):
-        self.request.get("q")
+        areas = AreaParser.parse(self.request.get("q"))
+        body = '{"areas":[%s]}' % ",".join([self.toJson(area) for area in areas])
+        self.response.out.write(body);
+        
+    def toJson(self, area):
+        values = {}
+        
+        values["code"] = '"%s"' % area["code"]
+        values["name"] = '"%s"' % AreaCache.getAreaName(area)
+        
+        parent = AreaCache.getParent(area)
+        if parent:
+            values["parent"] = self.toJson(parent)
+            
+        return "{%s}" % ",".join(['"%s":%s' % (k,v) for k,v in values.items()])
     
-class AreaImporter(RequestHandler):
+class AreasService(RequestHandler):
     def post(self):
         try:
             area = simplejson.load(self.request.body_file) 
@@ -21,7 +37,7 @@ class AreaImporter(RequestHandler):
         AreaCache.clear()
         self.response.set_status(204)
         
-class ExcludeWordImporter(RequestHandler):
+class ExcludeWordsService(RequestHandler):
     def put(self):
         try:
             words = simplejson.load(self.request.body_file)["words"] 
@@ -44,3 +60,4 @@ class ExcludeWordImporter(RequestHandler):
         
         ExcludeWordCache.put(word);
         self.response.set_status(204)
+        

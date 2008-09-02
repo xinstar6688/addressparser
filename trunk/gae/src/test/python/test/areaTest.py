@@ -2,46 +2,44 @@
 
 from StringIO import StringIO
 from address.models import AreaCache
-from address.services import AreaImporter
+from address.services import AreasService
 from google.appengine.api import memcache
 from test import BaseTestCase, areas
 
-class AreaImporterTest(BaseTestCase):
+class AreasServiceTest(BaseTestCase):
     def setUp(self):
         BaseTestCase.setUp(self)             
 
-    def prepareImporter(self, body):
-        importer = AreaImporter()
-    
-        self.mocker.restore()
+    def prepareService(self, body):
+        service = AreasService()
     
         response = self.mocker.mock()
         response.set_status(204)
-        importer.response = response
+        service.response = response
         
         request = self.mocker.mock()
         request.body_file
         self.mocker.result(StringIO(body))
-        importer.request = request   
+        service.request = request   
         
         self.mocker.replay()
         
-        return importer
+        return service
     
     def testMatch(self):
-        self.prepareImporter(u'{"middle": null, "code": "110000", "name": "北京", "unit": "市", "hasChild" : true}').post()
-        areas = AreaCache.getMatchedCities(u"北京")
+        self.prepareService(u'{"middle": null, "code": "110000", "name": "北京", "unit": "市", "hasChild" : true}').post()
+        areas = AreaCache.getMatchedAreas(u"北京")
         self.assertEqual(1, len(areas)); 
         
     def testClear(self):
-        importer = AreaImporter(); 
+        service = AreasService(); 
           
         response = self.mocker.mock()
         response.set_status(204)
-        importer.response = response
+        service.response = response
         self.mocker.replay()
 
-        importer.delete()
+        service.delete()
         
         self.assertEqual(None, memcache.get("address.models.Area.cache"))
  
@@ -55,31 +53,31 @@ class AreaCacheTest(BaseTestCase):
         self.assertEqual(areas[0], AreaCache.getParent(areas[1]))
         
     def testEmptyReader(self):
-        self.assertEquals(0, len(AreaCache.getMatchedCities("")));
+        self.assertEquals(0, len(AreaCache.getMatchedAreas("")));
 
 
     def testPartMatch(self):
-        self.assertEquals(0, len(AreaCache.getMatchedCities(u"杭")));
+        self.assertEquals(0, len(AreaCache.getMatchedAreas(u"杭")));
     
 
     def testMatchInMiddle(self):
-        self.assertEquals(0, len(AreaCache.getMatchedCities(u"大杭州市")));
+        self.assertEquals(0, len(AreaCache.getMatchedAreas(u"大杭州市")));
     
 
     def testNoOverlap(self):
-        self.assertEquals(areas[1], AreaCache.getMatchedCities(u"杭州")[0]);
+        self.assertEquals(areas[1], AreaCache.getMatchedAreas(u"杭州")[0]);
     
 
     def testOverlap(self):
-        self.assertEquals(areas[3], AreaCache.getMatchedCities(u"南昌")[0]);
+        self.assertEquals(areas[3], AreaCache.getMatchedAreas(u"南昌")[0]);
     
 
     def testLongest(self):
-        self.assertEquals(areas[4], AreaCache.getMatchedCities(u"南昌西北")[0]);
+        self.assertEquals(areas[4], AreaCache.getMatchedAreas(u"南昌西北")[0]);
     
 
     def testSameName(self):
-        cities = AreaCache.getMatchedCities(u"南京");
+        cities = AreaCache.getMatchedAreas(u"南京");
         self.assertEquals(areas[7], cities[0]);
         self.assertEquals(areas[10], cities[1]);
         
