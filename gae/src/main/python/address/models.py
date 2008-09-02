@@ -144,8 +144,22 @@ class AreaCache(AbstractCache):
     def getParent(cls, obj):
         parent = obj.get("parent", None)
         if parent:
-            return cls.getAreas(cls.getCache())[parent]        
-    
+            return cls.getAreas(cls.getCache())[parent]    
+            
+    @classmethod
+    def getAreaName(cls, area):
+        name = area["name"]
+        
+        middle = area.get("middle", None)
+        if middle:
+            name += middle
+            
+        unit = area.get("unit", None)
+        if unit:
+            name += unit
+            
+        return name
+            
     @classmethod
     def getAreas(cls, cache):
         if not cache.has_key("_areas"):

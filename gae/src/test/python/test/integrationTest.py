@@ -6,7 +6,7 @@ import httplib
 conn = httplib.HTTPConnection("localhost:8080")
 headers = {"Content-type": "application/json"}
 
-class ExcludeWordImporterTest(TestCase):    
+class ExcludeWordsServiceTest(TestCase):    
     def testPut(self):
         conn.request("PUT", "/excludeWords", 
                      '{"words": ["路","中路","中路","西路","中街","西街路口"]}', 
@@ -20,7 +20,7 @@ class ExcludeWordImporterTest(TestCase):
         self.assertEqual(204, response.status)
         
 
-class AreaImporterTest(TestCase):
+class AreasServiceTest(TestCase):
     def testDelete(self):
         conn.request("DELETE", "/areas")
         response = conn.getresponse()

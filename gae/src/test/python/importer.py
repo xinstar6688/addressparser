@@ -31,15 +31,13 @@ def importAreas():
         postArea(area)
 
 def toJson(area):
-    json = "{"
-    for k,v in area.items():
-        if v and len(v) > 0:
-            json += r'"' + k + r'":'
-            if (k == "hasChild"):
-                json += v + ","
-            else:
-                json += r'"' + v + r'",'
-    return json[0:-1] + "}"
+    return "{%s}" % ",".join([filedToJson(k,v) for k,v in area.items() if v and len(v) > 0])
+        
+def filedToJson(k, v):
+    if k == "hasChild":
+        return r'"%s":%s' % (k,v)
+    else:
+        return r'"%s":"%s"' % (k,v)
         
 def postArea(json):
     try:
@@ -54,12 +52,9 @@ def postArea(json):
         errors.append(json)
         time.sleep(1)      
     
-def importExcludeWords():    
-    excludeWords = '{"words": ['
+def importExcludeWords():        
     reader = csv.reader(open("excludeWords.csv", "rb"))
-    for row in reader:
-        excludeWords += r'"' + str(unicode(row[0], 'utf-8')) + r'",'
-    excludeWords = excludeWords[0:-1] + ']}'
+    excludeWords = '{"words": [%s]}' % ",".join([r'"' + str(unicode(row[0], 'utf-8')) + r'"' for row in reader])         
     
     conn.request("PUT", "/excludeWords", excludeWords, headers)
     conn.close()
