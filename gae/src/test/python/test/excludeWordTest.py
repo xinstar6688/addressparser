@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from StringIO import StringIO
-from address.cache import ExcludeWordCache
+from address.models import ExcludeWordCache
 from address.services import ExcludeWordImporter
 from test import BaseTestCase
 

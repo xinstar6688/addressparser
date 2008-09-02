@@ -1,10 +1,10 @@
-from address.services import AreaParser, AreaResource, ExcludeWordImporter
+from address.services import AreaParser, AreaImporter, ExcludeWordImporter
 from google.appengine.ext import webapp
 from wsgiref.handlers import CGIHandler
 
 application = webapp.WSGIApplication([
     (r'/parse', AreaParser),
-    (r'/areas/([\w-]+)', AreaResource),
+    (r'/areas/([\w-]+)', AreaImporter),
     (r'/excludeWords', ExcludeWordImporter)
 ], debug=True)
 
