@@ -18,17 +18,11 @@ class Area(db.Model):
     
     def put(self):
         db.Model.save(self)
-        areaMap = memcache.get("address.models.Area.areaMap")
-        if not areaMap:
-            areaMap = AreaMap()
-            memcache.set("address.models.Area.areaMap", areaMap)
-        areaMap.put(self)
-        
-    save = put 
+        AreaCache.put(self)
     
     def delete(self):
         db.Model.delete(self)
-        memcache.get("address.models.Area.areaMap").remove(self)
+        AreaCache.remove(self)
         
     def __cmp__(self, area):
         if isinstance(area, Area):
@@ -36,38 +30,134 @@ class Area(db.Model):
         else:
             return False
 
-class AreaMap():
-    _holder = {}
-     
-    def put(self, area):
-        self.doPut(area, self._holder, area.name)         
+class AbstractCache:   
+    @classmethod
+    def getCache(cls):
+        areaCache = memcache.get(cls.cacheName)
+        return areaCache and areaCache or {}
+    
+    @classmethod
+    def setCache(cls, areaCache):
+        memcache.set(cls.cacheName, areaCache)
         
-    def doPut(self, area, parentMap, part):
+    @classmethod
+    def put(cls, obj):
+        cache = cls.getCache()
+        cls.doPut(obj, cache, cls.getCacheString(obj))
+        cls.setCache(cache)             
+
+    @classmethod
+    def getCacheString(cls, obj):
+        return obj
+        
+    @classmethod
+    def doPut(cls, obj, parentMap, part):
         if len(part) == 0:
-            if not parentMap.has_key(""):
-                parentMap[""] = []
-            parentMap[""].append(area)
+            cls.doInPut(parentMap, obj)
         else:
             char = part[0]
             if not parentMap.has_key(char):
                 parentMap[char] = {} 
-            self.doPut(area, parentMap[char], part[1:])         
+            cls.doPut(obj, parentMap[char], part[1:]) 
+    
+    @classmethod
+    def doInPut(cls, parentMap, obj):
+        pass        
+    
         
-    def remove(self, area):
-        self.doRemove(area, self._holder, area.name)     
+    @classmethod
+    def remove(cls, obj):
+        cache = cls.getCache()
+        cls.doRemove(obj, cache, cls.getCacheString(obj))     
+        cls.setCache(cache)   
         
-    def doRemove(self, area, parentMap, part):
+    @classmethod
+    def doRemove(cls, obj, parentMap, part):
         if len(part) == 0:
-            areas  = parentMap[""]
-            areas.remove(area)
-            if len(areas) == 0:
-                del parentMap[""]
+            cls.doInRemove(parentMap, obj)
         else:
             char = part[0]
             childMap = parentMap[char]
-            self.doRemove(area, childMap, part[1:])
-            if len(childMap):
+            cls.doRemove(obj, childMap, part[1:])
+            if len(childMap) == 0:
                 del parentMap[char]
+                
+    @classmethod
+    def doInRemove(cls, parentMap, obj):
+        pass
+    
+class AreaCache(AbstractCache):
+    cacheName = "address.models.Area.cache"
+    
+    @classmethod
+    def put(cls, obj):
+        cache = cls.getCache()
+        cls.doPut(obj, cache, cls.getCacheString(obj))
+        cls.setCache(cache)             
+
+    @classmethod
+    def getCacheString(cls, obj):
+        return obj.name
+        
+    @classmethod
+    def doPut(cls, obj, parentMap, part):
+        if len(part) == 0:
+            cls.doInPut(parentMap, obj)
+        else:
+            char = part[0]
+            if not parentMap.has_key(char):
+                parentMap[char] = {} 
+            cls.doPut(obj, parentMap[char], part[1:]) 
+    
+    @classmethod
+    def doInPut(cls, parentMap, obj):
+        if not parentMap.has_key(""):
+            parentMap[""] = []
+        parentMap[""].append(obj)        
+
+    @classmethod
+    def doInRemove(cls, parentMap, obj):
+        areas  = parentMap[""]
+        areas.remove(obj)
+        if len(areas) == 0:
+            del parentMap[""]
+                
+    @classmethod
+    def getMatchedCities(cls, address):
+        return cls.doGetMatchedCities(cls.getCache(), address)
+
+    @classmethod
+    def doGetMatchedCities(cls, areaMap, address):
+        cities = []
+        if len(address) > 0:
+            char = address[0]
+            if areaMap.has_key(char):
+                cities = cls.doGetMatchedCities(areaMap[char], address[1:])
+
+        if len(cities) == 0 and areaMap.has_key(""):
+            cities = areaMap[""]
+        return cities
                 
 class ExcludeWord(db.Model):
     word = db.StringProperty()
+
+class ExcludeWordCache(AbstractCache):
+    cacheName = "address.models.ExcludeWord.cache"
+    
+    @classmethod
+    def isStartWith(cls, address):
+        return cls.doIsStartWith(cls.getCache(), address);
+
+    @classmethod
+    def doIsStartWith(cls, excludeWordMap, address):
+        result = False
+        
+        if len(excludeWordMap) == 0:
+            result = True
+            
+        if len(address) > 0:
+            char = address[0]
+            if excludeWordMap.has_key(char):
+                result = cls.doIsStartWith(excludeWordMap[char], address[1:])
+            
+        return result    
