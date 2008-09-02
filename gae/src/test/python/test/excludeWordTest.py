@@ -44,11 +44,8 @@ class ExcludeWordTestCase(BaseTestCase):
         return importer
 
 class ExcludeWordPostTest(ExcludeWordTestCase):
-    def setUp(self):
-        BaseTestCase.setUp(self)             
-        self.prepareImporter(u'{"word":"南路"}').post()
-        
     def testMatch(self):
+        self.prepareImporter(u'{"word":"南路"}').post()
         self.assertTrue(ExcludeWordCache.isStartWith(u"南路"))        
     
 
