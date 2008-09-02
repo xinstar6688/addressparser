@@ -1,4 +1,4 @@
-from address.models import ExcludeWordCache
+from address.models import ExcludeWordCache, AreaCache
 from django.utils import simplejson
 from google.appengine.ext.webapp import RequestHandler
 
@@ -7,7 +7,15 @@ class AreaParser(RequestHandler):
         self.request.get("q")
     
 class AreaImporter(RequestHandler):
-    pass
+    def post(self):
+        try:
+            area = simplejson.load(self.request.body_file) 
+        except (ValueError, TypeError, IndexError):
+            self.response.set_status(400)
+            return
+        
+        AreaCache.put(area);
+        self.response.set_status(204)
         
 class ExcludeWordImporter(RequestHandler):
     def put(self):

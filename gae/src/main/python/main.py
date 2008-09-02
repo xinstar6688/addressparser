@@ -4,7 +4,7 @@ from wsgiref.handlers import CGIHandler
 
 application = webapp.WSGIApplication([
     (r'/parse', AreaParser),
-    (r'/areas/([\w-]+)', AreaImporter),
+    (r'/areas', AreaImporter),
     (r'/excludeWords', ExcludeWordImporter)
 ], debug=True)
 
