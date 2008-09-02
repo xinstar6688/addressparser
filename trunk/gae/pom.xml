@@ -15,55 +15,20 @@
 	<name>Chinese Address Parser GAE</name>
 
 	<properties>
-		<restlet.version>1.1-M5</restlet.version>
 		<google.appengine.home>${env.GAE_HOME}</google.appengine.home>
 	</properties>
-
-	<dependencies>
-		<dependency>
-			<groupId>org.restlet</groupId>
-			<artifactId>org.restlet</artifactId>
-			<version>${restlet.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.noelios.restlet</groupId>
-			<artifactId>com.noelios.restlet</artifactId>
-			<version>${restlet.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.restlet</groupId>
-			<artifactId>org.restlet.ext.json</artifactId>
-			<version>${restlet.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>net.sf.opencsv</groupId>
-			<artifactId>opencsv</artifactId>
-			<version>1.8</version>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
-
-	<repositories>
-		<repository>
-			<id>restlet</id>
-			<url>http://maven.restlet.org/</url>
-		</repository>
-	</repositories>
 
 	<build>
 		<plugins>
 			<plugin>
 				<artifactId>maven-eclipse-plugin</artifactId>
 				<configuration>
-					<additionalBuildcommands>
+					<buildcommands>
 						<buildcommand>org.python.pydev.PyDevBuilder</buildcommand>
-					</additionalBuildcommands>
-					<additionalProjectnatures>
+					</buildcommands>
+					<projectnatures>
 						<projectnature>org.python.pydev.pythonNature</projectnature>
-					</additionalProjectnatures>
+					</projectnatures>
 					<additionalConfig>
 						<file>
 							<name>.pydevproject</name>
@@ -75,6 +40,7 @@
 	<pydev_property name="org.python.pydev.PYTHON_PROJECT_VERSION">python 2.5</pydev_property>
 	<pydev_pathproperty name="org.python.pydev.PROJECT_SOURCE_PATH">
 		<path>/book-gae/src/main/python</path>
+		<path>/book-gae/src/test/python</path>
 	</pydev_pathproperty>
 	<pydev_pathproperty name="org.python.pydev.PROJECT_EXTERNAL_SOURCE_PATH">
 		<path>${google.appengine.home}</path>
