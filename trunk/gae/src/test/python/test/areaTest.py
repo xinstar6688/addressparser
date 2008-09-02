@@ -8,7 +8,7 @@ from test import BaseTestCase
 class AreaImporterTest(BaseTestCase):
     def setUp(self):
         BaseTestCase.setUp(self)             
-        self.prepareImporter(u'{"middle": null, "code": "110000", "name": "北京", "unit": "市"}').post()
+        self.prepareImporter(u'{"middle": null, "code": "110000", "name": "北京", "unit": "市", "hasChild" : true}').post()
 
     def prepareImporter(self, body):
         importer = AreaImporter()
@@ -29,24 +29,25 @@ class AreaImporterTest(BaseTestCase):
         return importer
     
     def testMatch(self):
-        self.assertEquals(1, len(AreaCache.getMatchedCities(u"北京")));    
+        areas = AreaCache.getMatchedCities(u"北京")
+        self.assertEqual(1, len(areas));    
 
  
 class AreaCacheTest(BaseTestCase):        
-    areas = [{"code" : "100000", "name" : u"浙江", "unit" : u"省"}, 
-         {"code" : "101000" , "name" : u"杭州", "unit" : u"市", "parent" : "100000"},
-         {"code" : "200000", "name" : u"江西", "unit" : u"省"}, 
-         {"code" : "201000" , "name" : u"南昌", "unit" : u"市", "parent" : "200000"},
-         {"code" : "201010" , "name" : u"南昌西北", "unit":"区", "parent" : "201000"},
-         {"code" : "202000" , "name" : u"南", "unit":"市", "parent" : "200000"},
-         {"code" : "300000", "name" : u"江苏", "unit" : u"省"}, 
-         {"code" : "301000" , "name" : u"南京", "unit" : u"市", "parent" : "300000"},
-         {"code" : "301010" , "name" : u"南京西", "unit" : u"区", "parent" : "301000"},
-         {"code" : "400000", "name" : u"湖南", "unit" : u"省"}, 
-         {"code" : "401000" , "name" : u"南京", "unit" : u"市", "parent" : "400000"},
-         {"code" : "500000", "name" : u"吉林", "unit" : u"省"}, 
-         {"code" : "501000" , "name" : u"吉林", "unit" : u"市", "parent" : "500000"},
-         {"code" : "502000" , "name" : u"长春", "unit" : u"市", "parent" : "500000"}]
+    areas = [{"code" : "100000", "name" : u"浙江", "unit" : u"省", "hasChild" : True}, 
+         {"code" : "101000" , "name" : u"杭州", "unit" : u"市", "parent" : "100000", "hasChild" : False},
+         {"code" : "200000", "name" : u"江西", "unit" : u"省", "hasChild" : True}, 
+         {"code" : "201000" , "name" : u"南昌", "unit" : u"市", "parent" : "200000", "hasChild" : True},
+         {"code" : "201010" , "name" : u"南昌西北", "unit":"区", "parent" : "201000", "hasChild" : False},
+         {"code" : "202000" , "name" : u"南", "unit":"市", "parent" : "200000", "hasChild" : False},
+         {"code" : "300000", "name" : u"江苏", "unit" : u"省", "hasChild" : True}, 
+         {"code" : "301000" , "name" : u"南京", "unit" : u"市", "parent" : "300000", "hasChild" : True},
+         {"code" : "301010" , "name" : u"南京西", "unit" : u"区", "parent" : "301000", "hasChild" : False},
+         {"code" : "400000", "name" : u"湖南", "unit" : u"省", "hasChild" : True}, 
+         {"code" : "401000" , "name" : u"南京", "unit" : u"市", "parent" : "400000", "hasChild" : False},
+         {"code" : "500000", "name" : u"吉林", "unit" : u"省", "hasChild" : True}, 
+         {"code" : "501000" , "name" : u"吉林", "unit" : u"市", "parent" : "500000", "hasChild" : True},
+         {"code" : "502000" , "name" : u"长春", "unit" : u"市", "parent" : "500000", "hasChild" : False}]
 
     def setUp(self):
         BaseTestCase.setUp(self)
@@ -55,10 +56,6 @@ class AreaCacheTest(BaseTestCase):
                   
     def testGetParent(self):
         self.assertEqual(self.areas[0], AreaCache.getParent(self.areas[1]))
-        
-    def testHasChild(self):
-        self.assertTrue(self.areas[0]["hasChild"])
-        self.assertFalse(self.areas[1]["hasChild"])
         
     def testEmptyReader(self):
         self.assertEquals(0, len(AreaCache.getMatchedCities("")));

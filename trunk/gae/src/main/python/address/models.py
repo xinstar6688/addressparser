@@ -1,17 +1,28 @@
+from google.appengine.api import memcache
 class AbstractCache:   
-    _cache = {}
-    
     @classmethod
     def getCache(cls):
-        return cls._cache
+        areaCache = memcache.get(cls.cacheName)
+        return areaCache and areaCache or {}
     
     @classmethod
+    def setCache(cls, areaCache):
+        memcache.set(cls.cacheName, areaCache)
+        
+    @classmethod
     def clear(cls):
-        cls._cache.clear()
+        memcache.delete(cls.cacheName)
         
     @classmethod
     def put(cls, obj):
-        cls.doPut(obj, cls.getCache(), cls.getCacheString(obj))
+        cache = cls.getCache()
+        cls.doPut(obj, cache, cls.getCacheString(obj))
+        cls.doPostPut(obj, cache)
+        cls.setCache(cache)  
+        
+    @classmethod
+    def doPostPut(cls, obj, cache):
+        pass           
 
     @classmethod
     def getCacheString(cls, obj):
@@ -33,24 +44,24 @@ class AbstractCache:
     
     
 class AreaCache(AbstractCache):
-    areas = {}
+    cacheName = "address.models.Area.cache"
     
     @classmethod
     def getParent(cls, obj):
         parent = obj.get("parent", None)
         if parent:
-            return cls.areas[parent]        
+            return cls.getAreas(cls.getCache())[parent]        
     
     @classmethod
-    def put(cls, obj):
-        cls.doPut(obj, cls.getCache(), cls.getCacheString(obj))
-        
-        parentArea = cls.getParent(obj)
-        if parentArea:
-            parentArea["hasChild"] = True
-            
-        obj["hasChild"] = False
-        cls.areas[obj["code"]] = obj
+    def getAreas(cls, cache):
+        if not cache.has_key("_areas"):
+            cache["_areas"] = {}
+        return cache["_areas"]
+    
+    @classmethod
+    def doPostPut(cls, obj, cache):
+        areas = cls.getAreas(cache)
+        areas[obj["code"]] = obj
 
     @classmethod
     def getCacheString(cls, obj):
@@ -80,6 +91,8 @@ class AreaCache(AbstractCache):
                 
 
 class ExcludeWordCache(AbstractCache):
+    cacheName = "address.models.ExcludeWord.cache"
+
     @classmethod
     def isStartWith(cls, address):
         return cls.doIsStartWith(cls.getCache(), address);
