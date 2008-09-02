@@ -1,11 +1,26 @@
+from address.cache import ExcludeWordCache
 from address.models import Area
+from django.utils import simplejson
 from google.appengine.ext.webapp import RequestHandler
 from rest import Resource
 
 class AreaParser(RequestHandler):
     def get(self):
-        address = self.request.get("q")
-        print address
+        areas = Area.parse(self.request.get("q"))
+        
+class ExcludeWordImporter(RequestHandler):
+    def put(self):
+        try:
+            words = simplejson.load(self.request.body_file)["words"] 
+        except (ValueError, TypeError, IndexError):
+            self.response.set_status(400)
+            return
+        
+        ExcludeWordCache.clear()
+        for word in words:
+            ExcludeWordCache.put(word);
+            
+        self.response.set_status(204)
 
 class AreaResource(Resource):
     def setProperty(self, areaCode):
