@@ -3,12 +3,12 @@
 from StringIO import StringIO
 from address.models import AreaCache
 from address.services import AreaImporter
+from google.appengine.api import memcache
 from test import BaseTestCase
 
 class AreaImporterTest(BaseTestCase):
     def setUp(self):
         BaseTestCase.setUp(self)             
-        self.prepareImporter(u'{"middle": null, "code": "110000", "name": "北京", "unit": "市", "hasChild" : true}').post()
 
     def prepareImporter(self, body):
         importer = AreaImporter()
@@ -29,9 +29,21 @@ class AreaImporterTest(BaseTestCase):
         return importer
     
     def testMatch(self):
+        self.prepareImporter(u'{"middle": null, "code": "110000", "name": "北京", "unit": "市", "hasChild" : true}').post()
         areas = AreaCache.getMatchedCities(u"北京")
-        self.assertEqual(1, len(areas));    
+        self.assertEqual(1, len(areas)); 
+        
+    def testClear(self):
+        importer = AreaImporter(); 
+          
+        response = self.mocker.mock()
+        response.set_status(204)
+        importer.response = response
+        self.mocker.replay()
 
+        importer.delete()
+        
+        self.assertEqual(None, memcache.get("address.models.Area.cache"))
  
 class AreaCacheTest(BaseTestCase):        
     areas = [{"code" : "100000", "name" : u"浙江", "unit" : u"省", "hasChild" : True}, 
