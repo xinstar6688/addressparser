@@ -22,11 +22,13 @@ class ExcludeWordImporterTest(TestCase):
 
 class AreaImporterTest(TestCase):
     def testPost(self):
-        conn.request("POST", "/areas", '{"code": "110000", "name": "北京", "unit": "市"}', headers)
-        response = conn.getresponse()
-        self.assertEqual(204, response.status)
+        self.postArea('{"code": "110000", "name": "北京", "unit": "市", "hasChild" : true}')
 
     def testPostChild(self):
-        conn.request("POST", "/areas", '{"code": "110100", "name": "东城", "unit": "区", "parent" : "110000"}', headers)
+        self.postArea('{"code": "110100", "name": "东城", "unit": "区", "parent" : "110000", "hasChild" : false}')
+        
+    def postArea(self, json):
+        conn.request("POST", "/areas", json, headers)
         response = conn.getresponse()
         self.assertEqual(204, response.status)
+        
