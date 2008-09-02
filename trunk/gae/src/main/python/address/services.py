@@ -17,6 +17,10 @@ class AreaImporter(RequestHandler):
         AreaCache.put(area);
         self.response.set_status(204)
         
+    def delete(self):
+        AreaCache.clear()
+        self.response.set_status(204)
+        
 class ExcludeWordImporter(RequestHandler):
     def put(self):
         try:
