@@ -4,18 +4,29 @@ from unittest import TestCase
 import httplib
 
 conn = httplib.HTTPConnection("localhost:8080")
+headers = {"Content-type": "application/json"}
 
-class ExcludeWordImporterTest(TestCase):
-    headers = {"Content-type": "application/json"}
-    
+class ExcludeWordImporterTest(TestCase):    
     def testPut(self):
         conn.request("PUT", "/excludeWords", 
                      '{"words": ["路","中路","中路","西路","中街","西街路口"]}', 
-                     self.headers)
+                     headers)
         response = conn.getresponse()
         self.assertEqual(204, response.status)
         
     def testPost(self):
-        conn.request("POST", "/excludeWords", '{"word": "南路"}', self.headers)
+        conn.request("POST", "/excludeWords", '{"word": "南路"}', headers)
+        response = conn.getresponse()
+        self.assertEqual(204, response.status)
+        
+
+class AreaImporterTest(TestCase):
+    def testPost(self):
+        conn.request("POST", "/areas", '{"code": "110000", "name": "北京", "unit": "市"}', headers)
+        response = conn.getresponse()
+        self.assertEqual(204, response.status)
+
+    def testPostChild(self):
+        conn.request("POST", "/areas", '{"code": "110100", "name": "东城", "unit": "区", "parent" : "110000"}', headers)
         response = conn.getresponse()
         self.assertEqual(204, response.status)

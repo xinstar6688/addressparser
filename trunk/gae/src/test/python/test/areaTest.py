@@ -1,7 +1,36 @@
 # -*- coding: utf-8 -*-
 
+from StringIO import StringIO
 from address.models import AreaCache
+from address.services import AreaImporter
 from test import BaseTestCase
+
+class AreaImporterTest(BaseTestCase):
+    def setUp(self):
+        BaseTestCase.setUp(self)             
+        self.prepareImporter(u'{"middle": null, "code": "110000", "name": "北京", "unit": "市"}').post()
+
+    def prepareImporter(self, body):
+        importer = AreaImporter()
+    
+        self.mocker.restore()
+    
+        response = self.mocker.mock()
+        response.set_status(204)
+        importer.response = response
+        
+        request = self.mocker.mock()
+        request.body_file
+        self.mocker.result(StringIO(body))
+        importer.request = request   
+        
+        self.mocker.replay()
+        
+        return importer
+    
+    def testMatch(self):
+        self.assertEquals(1, len(AreaCache.getMatchedCities(u"北京")));    
+
  
 class AreaCacheTest(BaseTestCase):        
     areas = [{"code" : "100000", "name" : u"浙江", "unit" : u"省"}, 
