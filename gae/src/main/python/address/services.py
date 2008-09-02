@@ -21,6 +21,16 @@ class ExcludeWordImporter(RequestHandler):
             ExcludeWordCache.put(word);
             
         self.response.set_status(204)
+    
+    def post(self):
+        try:
+            word = simplejson.load(self.request.body_file)["word"] 
+        except (ValueError, TypeError, IndexError):
+            self.response.set_status(400)
+            return
+        
+        ExcludeWordCache.put(word);
+        self.response.set_status(204)
 
 class AreaResource(Resource):
     def setProperty(self, areaCode):

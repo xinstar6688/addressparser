@@ -3,9 +3,9 @@ from google.appengine.ext import webapp
 from wsgiref.handlers import CGIHandler
 
 application = webapp.WSGIApplication([
-  (r'/parse', AreaParser),
-  (r'/areas/([\w-]+)', AreaResource),
-  (r'/excludeWords', ExcludeWordImporter)
+    (r'/parse', AreaParser),
+    (r'/areas/([\w-]+)', AreaResource),
+    (r'/excludeWords', ExcludeWordImporter)
 ], debug=True)
 
 def main():
