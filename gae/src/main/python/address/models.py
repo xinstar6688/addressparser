@@ -141,10 +141,14 @@ class AreaCache(AbstractCache):
     cacheName = "address.models.Area.cache"
     
     @classmethod
+    def getArea(cls, code):
+        return cls.getAreas(cls.getCache())[code]
+    
+    @classmethod
     def getParent(cls, obj):
         parent = obj.get("parent", None)
         if parent:
-            return cls.getAreas(cls.getCache())[parent]    
+            return cls.getArea(parent)    
             
     @classmethod
     def getAreaName(cls, area):
