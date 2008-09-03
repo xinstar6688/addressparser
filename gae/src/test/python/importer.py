@@ -21,7 +21,7 @@ def importAreas():
         for i in range(6):
             area[areaName[i]] = areaValue[i]
         print "%s [import] %s" %(datetime.now(), area["code"])
-        postArea(toJson(area))
+        postArea(area)
         count += 1
         if size and count >= size:
             break
@@ -40,17 +40,17 @@ def filedToJson(k, v):
     else:
         return r'"%s":"%s"' % (k,v)
         
-def postArea(json):
+def postArea(area):
     try:
-        conn.request("POST", "/areas", json, headers)
+        conn.request("POST", "/areas", toJson(area), headers)
         response = conn.getresponse()
         if response.status != 204:
-            print "[server error]" + json
-            errors.append(json) 
+            print "[server error]" + area["code"]
+            errors.append(area) 
         conn.close()  
     except: 
-        print "[client error]" + json
-        errors.append(json)
+        print "[client error]" + area["code"]
+        errors.append(area)
         time.sleep(1)      
     
 def importExcludeWords():        
