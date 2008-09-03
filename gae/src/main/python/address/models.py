@@ -100,14 +100,10 @@ class AreaParser:
            
     
 class AbstractCache:   
-    _cache = None
-    
     @classmethod
     def getCache(cls):
-        if not cls._cache:
-            areaCache = memcache.get(cls.cacheName)
-            _cache = areaCache and areaCache or {}
-        return _cache
+        areaCache = memcache.get(cls.cacheName)
+        return areaCache and areaCache or {}
     
     @classmethod
     def setCache(cls, areaCache):
