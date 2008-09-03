@@ -144,16 +144,16 @@ class AbstractCache:
     
     
 class AreaCache(AbstractCache):
-    _cachePrefix = "address.models.Area."
+    _areaCachePrefix = "address.models.Area."
     cacheName = "address.models.Area.cache"
     
     @classmethod
     def getArea(cls, code):
-        return memcache.get(cls._cachePrefix + code)
+        return memcache.get(cls._areaCachePrefix + code)
     
     @classmethod
     def putArea(cls, area):
-        memcache.set(cls._cachePrefix + area["code"], area)
+        memcache.set(cls._areaCachePrefix + area["code"], area)
     
     @classmethod
     def getParent(cls, obj):
