@@ -5,11 +5,11 @@ class AreaLoader(bulkload.Loader):
     def __init__(self):
         # Our 'Person' entity contains a name string and an email
         bulkload.Loader.__init__(self, 'Area',
-                             [('code', unicode),
+                             [('code', str),
                               ('name', unicode),
+                              ('parentArea', str),
                               ('middle', unicode),
                               ('unit', unicode),
-                              ('parentArea', unicode),
                               ('hasChild', bool),
                               ])
 

@@ -2,13 +2,15 @@
 
 from address.models import AreaCache, ExcludeWordCache, AreaParser
 from address.services import AreaParserService
-from test import BaseTestCase, areas, excludeWords
+from test import BaseTestCase, areas, excludeWords, entities
 
 class AreaParserServiceTest(BaseTestCase):
     def setUp(self):
         BaseTestCase.setUp(self)
         for area in areas:
             AreaCache.put(area)
+        for entity in entities:
+            entity.save()
         for word in excludeWords:
             ExcludeWordCache.put(word) 
             
@@ -36,6 +38,8 @@ class AreaParserTest(BaseTestCase):
         BaseTestCase.setUp(self)
         for area in areas:
             AreaCache.put(area)
+        for entity in entities:
+            entity.save()
         for word in excludeWords:
             ExcludeWordCache.put(word)      
 
