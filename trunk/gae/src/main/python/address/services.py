@@ -31,8 +31,8 @@ class AreaParserService(RequestHandler):
         
     
 class AreasService(RequestHandler):
-    def get(self):
-        self.response.out.write(str(AreaCache.getCache()));
+#    def get(self):
+#        self.response.out.write(str(AreaCache.getCache()));
     
     def post(self):
         try:
