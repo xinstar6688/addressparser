@@ -31,6 +31,14 @@ class AreaParserService(RequestHandler):
         body = '{"areas":[%s]}' % ",".join([toJson(area) for area in areas])
         self.response.out.write(body);
         
+class AreasService(RequestHandler):
+    def get(self):
+        self.response.out.write(str(AreaCache.getCache()));
+        
+    def delete(self):
+        AreaCache.clear()
+        self.response.set_status(204)
+        
 class ExcludeWordsService(RequestHandler):
     def put(self):
         try:

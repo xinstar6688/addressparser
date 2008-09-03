@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
+from StringIO import StringIO
 from address.models import AreaCache, Area
+from address.services import AreasService
+from google.appengine.api import memcache
 from test import BaseTestCase, areas, entities
 
 class AreaTest(BaseTestCase):
@@ -18,6 +21,22 @@ class AreaTest(BaseTestCase):
     def testGetByCode(self):
         self.assertEqual(u"浙江", Area.getByCode("100000").name)
 
+class AreasServiceTest(BaseTestCase):
+    def setUp(self):
+        BaseTestCase.setUp(self)             
+        
+    def testClear(self):
+        service = AreasService(); 
+          
+        response = self.mocker.mock()
+        response.set_status(204)
+        service.response = response
+        self.mocker.replay()
+
+        service.delete()
+        
+        self.assertEqual(None, memcache.get("address.models.Area.cache"))
+ 
 class AreaCacheTest(BaseTestCase):        
     def setUp(self):
         BaseTestCase.setUp(self)

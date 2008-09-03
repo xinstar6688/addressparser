@@ -1,4 +1,4 @@
-from google.appengine.ext import bulkload
+import bulkload
 from address.models import AreaCache
 
 class AreaLoader(bulkload.Loader):
@@ -6,10 +6,10 @@ class AreaLoader(bulkload.Loader):
         # Our 'Person' entity contains a name string and an email
         bulkload.Loader.__init__(self, 'Area',
                              [('code', str),
-                              ('name', unicode),
+                              ('name', str),
                               ('parentArea', str),
-                              ('middle', unicode),
-                              ('unit', unicode),
+                              ('middle', str),
+                              ('unit', str),
                               ('hasChild', bool),
                               ])
 
