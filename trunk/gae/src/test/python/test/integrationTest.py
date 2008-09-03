@@ -18,3 +18,10 @@ class ExcludeWordsServiceTest(TestCase):
         conn.request("POST", "/excludeWords", '{"word": "南路"}', headers)
         response = conn.getresponse()
         self.assertEqual(204, response.status)
+        
+
+class AreasServiceTest(TestCase):
+    def testDelete(self):
+        conn.request("DELETE", "/areas")
+        response = conn.getresponse()
+        self.assertEqual(204, response.status)        
