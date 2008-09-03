@@ -148,7 +148,7 @@ class AreaCache(AbstractCache):
     
     @classmethod
     def getArea(cls, code):
-        return cls.getAreas(cls.getCache())[code]
+        return cls.getAreas(cls.getCache()).get(code, None)
     
     @classmethod
     def getParent(cls, obj):
