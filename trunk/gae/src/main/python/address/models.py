@@ -13,10 +13,15 @@ class Area(db.Model):
     hasChild = db.BooleanProperty()
     
     @classmethod
+    def _getCacheName(cls, code):
+        return "address.models.Area.%s" % code
+    
+    @classmethod
     def getByCode(cls, code):
-        print ">>" + code
-        area = cls.gql("where code = :1", code).get()
-        print ">>" + str(area)
+        area = memcache.get(cls._getCacheName(code))
+        if not area:
+            area = cls.gql("where code = :1", code).get()
+            memcache.set(cls._getCacheName(code), area)
         return area
     
     def getParent(self):
@@ -41,10 +46,10 @@ class AreaParser:
         for i in range(len(partAddress)):
             # 获取匹配的区域， 如果指定parent， 则匹配的区域必须是parent的下级区域
             areas = [area for area in AreaCache.getMatchedAreas(partAddress[i:]) if  (not parent) or cls.isChild(parent, area)]                       
-            logging.debug("got areas[%s] for %s" % (",".join([area["name"] for area in areas]), address))
+            logging.debug("got areas[%s] for %s" % (",".join([area.name for area in areas]), address))
             
             if len(areas) > 0:
-                followStart = i + len(areas[0]["name"])                
+                followStart = i + len(areas[0].name)                
                
                 #如果区域后面跟着特定的词语，如”路“， 则忽略这个区域
                 #如”湖南路“就不应该认为是”湖南省“
@@ -54,13 +59,13 @@ class AreaParser:
                 #如果区域还有下级区域的话，则在后面字符串中继续查找下级区域，然后用找到的下级区域代替上级区域
                 childrenAreas = []
                 for area in areas:
-                    if area["hasChild"]:
+                    if area.hasChild:
                         children = cls.parse(address, start + followStart, area)
                         if len(children) > 0: 
                             childrenAreas.extend(children)
                 if len(childrenAreas) > 0:
                     areas = childrenAreas
-                    logging.debug("got children areas[%s] for %s" % (",".join([area["name"] for area in areas]), address))
+                    logging.debug("got children areas[%s] for %s" % (",".join([area.name for area in areas]), address))
                      
                 #如果在结果集中同时存在上级和下级区域，则去除上级区域                
                 parentAreas = []
@@ -71,7 +76,7 @@ class AreaParser:
                     if area in areas:
                         areas.remove(area)   
                         
-                logging.debug("areas[%s] after removed parents for %s" % (",".join([area["name"] for area in areas]), address))
+                logging.debug("areas[%s] after removed parents for %s" % (",".join([area.name for area in areas]), address))
                               
                 #如果存在多个结果的时候，在后续字符中查找上级区域，找到的必然是正确的结果               
                 if len(areas) > 1:
@@ -81,7 +86,7 @@ class AreaParser:
                             matchedParents.append(area);
 
                     if len(matchedParents) > 0:
-                        logging.debug("areas[%s] after matched parents for %s" % (",".join([area["name"] for area in matchedParents]), address))
+                        logging.debug("areas[%s] after matched parents for %s" % (",".join([area.name for area in matchedParents]), address))
                         return matchedParents
 
                 return areas
@@ -99,7 +104,7 @@ class AreaParser:
         """ 获取指定区域的所有上级区域
         """
         parents = []
-        parent = AreaCache.getParent(area);
+        parent = area.getParent();
         if parent:
             parents.append(parent)
             parents.extend(cls.getParents(parent))    
@@ -111,7 +116,7 @@ class AreaParser:
         """
         parents = cls.getParents(area)
         for parent in parents:            
-            if cls.hasAreaName(parent["name"], string):
+            if cls.hasAreaName(parent.name, string):
                 return True                                     
         return False
     
@@ -146,12 +151,7 @@ class AbstractCache:
     def put(cls, obj):
         cache = cls.getCache()
         cls.doPut(obj, cache, cls.getCacheString(obj))
-        cls.doPostPut(obj)
         cls.setCache(cache)  
-        
-    @classmethod
-    def doPostPut(cls, obj):
-        pass           
 
     @classmethod
     def getCacheString(cls, obj):
@@ -173,33 +173,7 @@ class AbstractCache:
     
     
 class AreaCache(AbstractCache):
-    _areaCachePrefix = "address.models.Area."
     cacheName = "address.models.Area.cache"
-    
-    @classmethod
-    def getArea(cls, code):
-        return memcache.get(cls._areaCachePrefix + code)
-    
-    @classmethod
-    def putArea(cls, area):
-        memcache.set(cls._areaCachePrefix + area["code"], area)
-    
-    @classmethod
-    def getParent(cls, obj):
-        parent = obj.get("parent", None)
-        if parent:
-            return cls.getArea(parent)    
-            
-    @classmethod
-    def getAreaName(cls, area):
-        middle = area.get("middle", None)
-        unit = area.get("unit", None)
-
-        return "%s%s%s" % (area["name"], middle and middle or "", unit and unit or "")
-    
-    @classmethod
-    def doPostPut(cls, obj):
-        cls.putArea(obj)
 
     @classmethod
     def getCacheString(cls, obj):
@@ -224,7 +198,7 @@ class AreaCache(AbstractCache):
                 cities = cls.doGetMatchedAreas(areaMap[char], address[1:])
 
         if len(cities) == 0 and areaMap.has_key(""):
-            cities = [cls.getArea(code) for code in areaMap[""]]
+            cities = [Area.getByCode(code) for code in areaMap[""]]
         return cities
                 
 
@@ -239,6 +213,7 @@ class ExcludeWordCache(AbstractCache):
     def doIsStartWith(cls, excludeWordMap, address):
         result = False
         
+        #这里有bug
         if len(excludeWordMap) == 0:
             result = True
             

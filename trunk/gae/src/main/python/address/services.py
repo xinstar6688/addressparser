@@ -1,16 +1,15 @@
-from address.models import ExcludeWordCache, AreaCache
+from address.models import AreaParser, ExcludeWordCache, AreaCache, Area
 from django.utils import simplejson
 from google.appengine.ext.webapp import RequestHandler
-from address.models import AreaParser 
 import logging
 
 def toJson(area):
     values = {}
     
-    values["code"] = '"%s"' % area["code"]
-    values["name"] = '"%s"' % AreaCache.getAreaName(area)
+    values["code"] = '"%s"' % area.code
+    values["name"] = '"%s"' % area.getFullName()
     
-    parent = AreaCache.getParent(area)
+    parent = area.getParent()
     if parent:
         values["parent"] = toJson(parent)
         
@@ -18,7 +17,7 @@ def toJson(area):
 
 class AreaResource(RequestHandler):
     def get(self, code):
-        area = AreaCache.getArea(code)
+        area = Area.getByCode(code)
         if area:
             self.response.out.write(toJson(area));
         else:
@@ -31,25 +30,6 @@ class AreaParserService(RequestHandler):
         areas = AreaParser.parse(address)
         body = '{"areas":[%s]}' % ",".join([toJson(area) for area in areas])
         self.response.out.write(body);
-        
-    
-class AreasService(RequestHandler):
-    def get(self):
-        self.response.out.write(str(AreaCache.getCache()));
-    
-    def post(self):
-        try:
-            area = simplejson.load(self.request.body_file) 
-        except (ValueError, TypeError, IndexError):
-            self.response.set_status(400)
-            return
-        
-        AreaCache.put(area);
-        self.response.set_status(204)
-        
-    def delete(self):
-        AreaCache.clear()
-        self.response.set_status(204)
         
 class ExcludeWordsService(RequestHandler):
     def put(self):

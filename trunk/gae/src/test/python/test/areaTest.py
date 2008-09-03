@@ -63,9 +63,8 @@ class AreaCacheTest(BaseTestCase):
         BaseTestCase.setUp(self)
         for area in areas:
             AreaCache.put(area)
-                  
-    def testGetParent(self):
-        self.assertEqual(areas[0], AreaCache.getParent(areas[1]))
+        for entity in entities:
+            entity.save()
         
     def testEmptyReader(self):
         self.assertEquals(0, len(AreaCache.getMatchedAreas("")));
