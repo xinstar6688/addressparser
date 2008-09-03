@@ -2,7 +2,7 @@ from address.models import ExcludeWordCache, AreaCache
 from django.utils import simplejson
 from google.appengine.ext.webapp import RequestHandler
 from address.models import AreaParser 
-
+import logging
 
 def toJson(area):
     values = {}
@@ -23,7 +23,9 @@ class AreaResource(RequestHandler):
 
 class AreaParserService(RequestHandler):
     def get(self):
-        areas = AreaParser.parse(self.request.get("q"))
+        address = self.request.get("q")
+        logging.info("parsing %s" % address)
+        areas = AreaParser.parse(address)
         body = '{"areas":[%s]}' % ",".join([toJson(area) for area in areas])
         self.response.out.write(body);
         

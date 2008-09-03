@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from google.appengine.api import memcache
+import logging
 
 class AreaParser:
     @classmethod
@@ -10,7 +11,8 @@ class AreaParser:
         partAddress = address[start:]
         for i in range(len(partAddress)):
             # 获取匹配的区域， 如果指定parent， 则匹配的区域必须是parent的下级区域
-            areas = [area for area in AreaCache.getMatchedAreas(partAddress[i:]) if  (not parent) or cls.isChild(parent, area)]           
+            areas = [area for area in AreaCache.getMatchedAreas(partAddress[i:]) if  (not parent) or cls.isChild(parent, area)]                       
+            logging.debug("got areas[%s] for %s" % (",".join([area["name"] for area in areas]), address))
             
             if len(areas) > 0:
                 followStart = i + len(areas[0]["name"])                
@@ -29,6 +31,7 @@ class AreaParser:
                             childrenAreas.extend(children)
                 if len(childrenAreas) > 0:
                     areas = childrenAreas
+                    logging.debug("got children areas[%s] for %s" % (",".join([area["name"] for area in areas]), address))
                      
                 #如果在结果集中同时存在上级和下级区域，则去除上级区域                
                 parentAreas = []
@@ -38,7 +41,9 @@ class AreaParser:
                 for area in parentAreas:
                     if area in areas:
                         areas.remove(area)   
-                               
+                        
+                logging.debug("areas[%s] after removed parents for %s" % (",".join([area["name"] for area in areas]), address))
+                              
                 #如果存在多个结果的时候，在后续字符中查找上级区域，找到的必然是正确的结果               
                 if len(areas) > 1:
                     matchedParents = []
@@ -47,6 +52,7 @@ class AreaParser:
                             matchedParents.append(area);
 
                     if len(matchedParents) > 0:
+                        logging.debug("areas[%s] after matched parents for %s" % (",".join([area["name"] for area in matchedParents]), address))
                         return matchedParents
 
                 return areas
