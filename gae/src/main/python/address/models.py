@@ -1,7 +1,36 @@
 # -*- coding: utf-8 -*-
 
 from google.appengine.api import memcache
+from google.appengine.ext import db
 import logging
+
+class Area(db.Model):
+    code = db.StringProperty()
+    name = db.StringProperty()
+    middle = db.StringProperty()
+    unit = db.StringProperty()
+    parentArea = db.StringProperty()
+    hasChild = db.BooleanProperty()
+    
+    @classmethod
+    def getByCode(cls, code):
+        print ">>" + code
+        area = cls.gql("where code = :1", code).get()
+        print ">>" + str(area)
+        return area
+    
+    def getParent(self):
+        return self.getByCode(self.parentArea)
+    
+    def getFullName(self):
+        return "%s%s%s" % (self.name, self.middle and self.middle or "",
+                           self.unit and self.unit or "")
+
+    def __cmp__(self, area):
+        if isinstance(area, Area):
+            return cmp(self.code, area.code)
+        else:
+            return False
 
 class AreaParser:
     @classmethod
