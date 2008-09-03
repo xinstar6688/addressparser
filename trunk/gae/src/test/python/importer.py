@@ -2,10 +2,10 @@ import csv
 import httplib
 import time
 
-conn = httplib.HTTPConnection("address.muthos.cn")
+conn = httplib.HTTPConnection("localhost:8080")
 headers = {"Content-type": "application/json"}
 errors = []
-size = None
+size = 20
 
 def importAreas():
     conn.request("DELETE", "/areas")
