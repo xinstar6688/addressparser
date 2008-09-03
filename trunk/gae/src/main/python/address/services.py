@@ -1,26 +1,32 @@
 from address.models import ExcludeWordCache, AreaCache
 from django.utils import simplejson
 from google.appengine.ext.webapp import RequestHandler
-from address.models import AreaParser  
-import urllib
+from address.models import AreaParser 
+
+
+def toJson(area):
+    values = {}
+    
+    values["code"] = '"%s"' % area["code"]
+    values["name"] = '"%s"' % AreaCache.getAreaName(area)
+    
+    parent = AreaCache.getParent(area)
+    if parent:
+        values["parent"] = toJson(parent)
+        
+    return "{%s}" % ",".join(['"%s":%s' % (k,v) for k,v in values.items()])
+
+class AreaResource(RequestHandler):
+    def get(self, code):
+        area = AreaCache.getArea(code)
+        self.response.out.write(toJson(area));
 
 class AreaParserService(RequestHandler):
     def get(self):
         areas = AreaParser.parse(self.request.get("q"))
-        body = '{"areas":[%s]}' % ",".join([self.toJson(area) for area in areas])
+        body = '{"areas":[%s]}' % ",".join([toJson(area) for area in areas])
         self.response.out.write(body);
         
-    def toJson(self, area):
-        values = {}
-        
-        values["code"] = '"%s"' % area["code"]
-        values["name"] = '"%s"' % AreaCache.getAreaName(area)
-        
-        parent = AreaCache.getParent(area)
-        if parent:
-            values["parent"] = self.toJson(parent)
-            
-        return "{%s}" % ",".join(['"%s":%s' % (k,v) for k,v in values.items()])
     
 class AreasService(RequestHandler):
     def post(self):
