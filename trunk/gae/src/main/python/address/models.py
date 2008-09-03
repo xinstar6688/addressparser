@@ -117,11 +117,11 @@ class AbstractCache:
     def put(cls, obj):
         cache = cls.getCache()
         cls.doPut(obj, cache, cls.getCacheString(obj))
-        cls.doPostPut(obj, cache)
+        cls.doPostPut(obj)
         cls.setCache(cache)  
         
     @classmethod
-    def doPostPut(cls, obj, cache):
+    def doPostPut(cls, obj):
         pass           
 
     @classmethod
@@ -144,11 +144,16 @@ class AbstractCache:
     
     
 class AreaCache(AbstractCache):
+    _cachePrefix = "address.models.Area."
     cacheName = "address.models.Area.cache"
     
     @classmethod
     def getArea(cls, code):
-        return cls.getAreas(cls.getCache()).get(code, None)
+        return memcache.get(cls._cachePrefix + code)
+    
+    @classmethod
+    def putArea(cls, area):
+        memcache.set(cls._cachePrefix + area["code"], area)
     
     @classmethod
     def getParent(cls, obj):
@@ -158,28 +163,14 @@ class AreaCache(AbstractCache):
             
     @classmethod
     def getAreaName(cls, area):
-        name = area["name"]
-        
         middle = area.get("middle", None)
-        if middle:
-            name += middle
-            
         unit = area.get("unit", None)
-        if unit:
-            name += unit
-            
-        return name
-            
-    @classmethod
-    def getAreas(cls, cache):
-        if not cache.has_key("_areas"):
-            cache["_areas"] = {}
-        return cache["_areas"]
+
+        return "%s%s%s" % (area["name"], middle and middle or "", unit and unit or "")
     
     @classmethod
-    def doPostPut(cls, obj, cache):
-        areas = cls.getAreas(cache)
-        areas[obj["code"]] = obj
+    def doPostPut(cls, obj):
+        cls.putArea(obj)
 
     @classmethod
     def getCacheString(cls, obj):
@@ -189,7 +180,7 @@ class AreaCache(AbstractCache):
     def doInPut(cls, parentMap, obj):
         if not parentMap.has_key(""):
             parentMap[""] = []
-        parentMap[""].append(obj)        
+        parentMap[""].append(obj["code"])        
                 
     @classmethod
     def getMatchedAreas(cls, address):
@@ -204,7 +195,7 @@ class AreaCache(AbstractCache):
                 cities = cls.doGetMatchedAreas(areaMap[char], address[1:])
 
         if len(cities) == 0 and areaMap.has_key(""):
-            cities = areaMap[""]
+            cities = [cls.getArea(code) for code in areaMap[""]]
         return cities
                 
 
