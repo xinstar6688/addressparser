@@ -1,10 +1,25 @@
 # -*- coding: utf-8 -*-
 
 from StringIO import StringIO
-from address.models import AreaCache
+from address.models import AreaCache, Area
 from address.services import AreasService
 from google.appengine.api import memcache
-from test import BaseTestCase, areas
+from test import BaseTestCase, areas, entities
+
+class AreaTest(BaseTestCase):
+    def setUp(self):
+        BaseTestCase.setUp(self)
+        for entity in entities:
+            entity.save()
+            
+    def testGetParent(self):
+        self.assertEqual(entities[0].code, entities[1].getParent().code)
+        
+    def testGetFullName(self):
+        self.assertEqual(u"浙江省", entities[0].getFullName())
+        
+    def testGetByCode(self):
+        self.assertEqual(u"浙江", Area.getByCode("100000").name)
 
 class AreasServiceTest(BaseTestCase):
     def setUp(self):
