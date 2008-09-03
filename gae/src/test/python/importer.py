@@ -1,4 +1,5 @@
 import csv
+from datetime import datetime
 import httplib
 import time
 
@@ -19,7 +20,7 @@ def importAreas():
         area = {}
         for i in range(6):
             area[areaName[i]] = areaValue[i]
-        print "[import]" + area["code"]
+        print "%s [import] %s" %(datetime.now(), area["code"])
         postArea(toJson(area))
         count += 1
         if size and count >= size:
@@ -27,7 +28,7 @@ def importAreas():
 
     while len(errors) != 0:
         area = errors.pop()
-        print "[reimport]" + area["code"]
+        print "%s [reimport] %s" %(datetime.now(), area["code"])
         postArea(area)
 
 def toJson(area):
