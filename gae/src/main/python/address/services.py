@@ -19,7 +19,10 @@ def toJson(area):
 class AreaResource(RequestHandler):
     def get(self, code):
         area = AreaCache.getArea(code)
-        self.response.out.write(toJson(area));
+        if area:
+            self.response.out.write(toJson(area));
+        else:
+            self.response.set_status(404)
 
 class AreaParserService(RequestHandler):
     def get(self):
