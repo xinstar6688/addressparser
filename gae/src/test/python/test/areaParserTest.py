@@ -27,7 +27,7 @@ class AreaParserServiceTest(BaseTestCase):
         out = self.mocker.mock()
         response.out
         self.mocker.result(out)
-        out.write(u'{"areas":[{"code":"502000","name":"长春市","parent":{"code":"500000","name":"吉林省"}}]}')
+        out.write(u'{"areas":[{"parentArea":{"code":"500000","name":"\u5409\u6797\u7701"},"code":"502000","name":"\u957f\u6625\u5e02"}]}')
         service.response = response
 
         headers = self.mocker.mock()
