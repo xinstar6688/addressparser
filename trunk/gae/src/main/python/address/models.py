@@ -19,12 +19,12 @@ class Area(db.Model):
         db.Model.put(self)
         memcache.set(self._getCacheName(self.code), self)
         
-        if not area:
-            AreaCache.put(self)
-        else:
+        if area:
             if area.name != self.name:
                 AreaCache.remove(area)
                 AreaCache.put(self)
+        else:
+            AreaCache.put(self)
         
     save = put
     
@@ -55,13 +55,13 @@ class Area(db.Model):
 
 class AreaParser:
     @classmethod
-    def parse(cls, address, start = 0, parent = None):
+    def parse(cls, address, parent = None):
         """ 从指定地址中分析出包含的区域
         """
-        partAddress = address[start:]
-        for i in range(len(partAddress)):
+        
+        for i in range(len(address)):
             # 获取匹配的区域， 如果指定parent， 则匹配的区域必须是parent的下级区域
-            areas = [Area.getByCode(code) for code in AreaCache.getMatchedAreas(partAddress[i:])]
+            areas = [Area.getByCode(code) for code in AreaCache.getMatchedAreas(address[i:])]
             areas = [area for area in areas if  (not parent) or cls._isChild(parent, area)]                       
             logging.debug("got areas[%s] for %s" % (",".join([area.name for area in areas]), address))
             
@@ -70,24 +70,23 @@ class AreaParser:
                
                 #如果区域后面跟着特定的词语，如”路“， 则忽略这个区域
                 #如”湖南路“就不应该认为是”湖南省“
-                if ExcludeWordCache.isStartWith(partAddress[followStart:]):
-                    continue
+                if ExcludeWordCache.isStartWith(address[followStart:]): continue
                 
                 #如果区域还有下级区域的话，则在后面字符串中继续查找下级区域，然后用找到的下级区域代替上级区域
                 childrenAreas = []
                 for area in areas:
                     if area.hasChild:
-                        children = cls.parse(address, start + followStart, area)
+                        children = cls.parse(address[followStart:], area)
                         if len(children) > 0: 
                             childrenAreas.extend(children)
-                if len(childrenAreas) > 0:
-                    areas = childrenAreas
-                    logging.debug("got children areas[%s] for %s" % (",".join([area.name for area in areas]), address))
+                            
+                if len(childrenAreas) > 0: areas = childrenAreas
+                    
+                logging.debug("got children areas[%s] for %s" % (",".join([area.name for area in areas]), address))
                      
                 #如果在结果集中同时存在上级和下级区域，则去除上级区域                
                 parentAreas = []
-                for area in areas:
-                    parentAreas.extend(cls._getParents(area)) 
+                for area in areas: parentAreas.extend(cls._getParents(area)) 
                  
                 for area in parentAreas:
                     if area in areas:
@@ -97,17 +96,12 @@ class AreaParser:
                               
                 #如果存在多个结果的时候，在后续字符中查找上级区域，找到的必然是正确的结果               
                 if len(areas) > 1:
-                    matchedParents = []
-                    for area in areas:
-                        if cls._hasParent(area, address[followStart:]):
-                            matchedParents.append(area);
+                    matchedParents = [area for area in areas if cls._hasParent(area, address[followStart:])]
+                    if len(matchedParents) > 0: areas = matchedParents
+                
+                logging.debug("areas[%s] after matched parents for %s" % (",".join([area.name for area in areas]), address))
 
-                    if len(matchedParents) > 0:
-                        logging.debug("areas[%s] after matched parents for %s" % (",".join([area.name for area in matchedParents]), address))
-                        return matchedParents
-
-                return areas
-            
+                return areas           
         return []
 
     @classmethod
