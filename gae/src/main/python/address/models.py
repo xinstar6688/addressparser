@@ -30,6 +30,18 @@ class Area(db.Model):
     save = put
     
     @classmethod
+    def deleteAll(cls):
+        while True:
+            areas = cls.all().fetch(1000)
+            for area in areas: area.delete()
+            if len(areas) < 1000: break
+    
+    @classmethod
+    def clear(cls):
+        cls.deleteAll()
+        AreaCharCache.clear()
+
+    @classmethod
     def getByCode(cls, code):
         area = AreaCache.get(code)
         if not area:
@@ -63,6 +75,27 @@ class Area(db.Model):
             return cmp(self.code, area.code)
         else:
             return False
+        
+class ExcludeWord(db.Model):
+    word = db.StringProperty()
+    
+    def put(self):
+        db.Model.put(self)
+        ExcludeWordCharCache.put(self.word)
+
+    save = put
+
+    @classmethod
+    def deleteAll(cls):
+        while True:
+            words = cls.all().fetch(1000)
+            for word in words: word.delete()
+            if len(words) < 1000: break
+    
+    @classmethod
+    def clear(cls):
+        cls.deleteAll()
+        ExcludeWordCharCache.clear()
         
 class AbstractCache:   
     @classmethod

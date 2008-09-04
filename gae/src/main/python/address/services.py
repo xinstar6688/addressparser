@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from address.caches import AreaCharCache, ExcludeWordCharCache
-from address.models import AreaParser, Area
+from address.models import AreaParser, Area, ExcludeWord
 from django.utils import simplejson
 from google.appengine.ext.webapp import RequestHandler
 import logging
@@ -60,7 +59,7 @@ class AreasService(RequestHandler):
         
     def delete(self):
         logging.info("clearing all areas")
-        AreaCharCache.clear()
+        Area.clear()
         
         logging.info("all areas are cleared")
         self.response.set_status(204)
@@ -74,11 +73,11 @@ class ExcludeWordsService(RequestHandler):
             return
         
         logging.info("putting exclude words[%s]" % ",".join(words))
-        ExcludeWordCharCache.clear()
+        ExcludeWord.clear()
         logging.info("exclude words are cleared")
         
         for word in words:
-            ExcludeWordCharCache.put(word);
+            ExcludeWord(word = word).save()
         logging.info("exclude words[%s] are put" % ",".join(words))
             
         self.response.set_status(204)
@@ -91,7 +90,7 @@ class ExcludeWordsService(RequestHandler):
             return
         
         logging.info("posting exclude word[%s]" % word)
-        ExcludeWordCharCache.put(word);
+        ExcludeWord(word = word).save()
         logging.info("exclude word[%s] is post" % word)
 
         self.response.set_status(204)
