@@ -12,6 +12,7 @@ import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.ClickListener;
+import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.TextBox;
@@ -23,7 +24,7 @@ import com.google.gwt.user.client.ui.Widget;
  */
 public class Index implements JsonHandler {
 	private static final List<String> excludeAreas = new ArrayList<String>();
-	private static final String JSON_URL = "http://2.10.address-parser.appspot.com/parse?q=";
+	private static final String JSON_URL = "http://address.muthos.cn/parse?q=";
 	private int jsonRequestId = 0;
 	private Label label = new Label();
 
@@ -34,15 +35,21 @@ public class Index implements JsonHandler {
 	
 	public void onModuleLoad() {
 		VerticalPanel vPanel = new VerticalPanel();
-		vPanel.setSize(Window.getClientWidth() + "px", Window.getClientHeight()
-				+ "px");
+		vPanel.setSpacing(50);
+		vPanel.setSize(Window.getClientWidth() - 100 + "px", 
+				Window.getClientHeight() - 100 + "px");
 		vPanel.setHorizontalAlignment(VerticalPanel.ALIGN_CENTER);
+		vPanel.setVerticalAlignment(VerticalPanel.ALIGN_TOP);
 		RootPanel.get().add(vPanel);
 
+		HorizontalPanel hPanel = new HorizontalPanel();
+		vPanel.add(hPanel);		
+		
 		final TextBox text = new TextBox();
-		vPanel.add(text);
+		hPanel.add(text);
 		Button button = new Button("Parse It");
-		vPanel.add(button);
+		hPanel.add(button);
+		
 		vPanel.add(label);
 
 		button.addClickListener(new ClickListener() {

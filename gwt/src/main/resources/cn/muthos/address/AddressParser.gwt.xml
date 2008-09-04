@@ -5,5 +5,4 @@
 	<inherits name='com.google.gwt.user.theme.standard.Standard' />
 	
 	<entry-point class='cn.muthos.address.client.Index' />
-	<stylesheet src='book-pedia.css' />
 </module>
