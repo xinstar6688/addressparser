@@ -62,7 +62,7 @@ class AreaParser:
         for i in range(len(partAddress)):
             # 获取匹配的区域， 如果指定parent， 则匹配的区域必须是parent的下级区域
             areas = [Area.getByCode(code) for code in AreaCache.getMatchedAreas(partAddress[i:])]
-            areas = [area for area in areas if  (not parent) or cls.isChild(parent, area)]                       
+            areas = [area for area in areas if  (not parent) or cls._isChild(parent, area)]                       
             logging.debug("got areas[%s] for %s" % (",".join([area.name for area in areas]), address))
             
             if len(areas) > 0:
@@ -87,7 +87,7 @@ class AreaParser:
                 #如果在结果集中同时存在上级和下级区域，则去除上级区域                
                 parentAreas = []
                 for area in areas:
-                    parentAreas.extend(cls.getParents(area)) 
+                    parentAreas.extend(cls._getParents(area)) 
                  
                 for area in parentAreas:
                     if area in areas:
@@ -99,7 +99,7 @@ class AreaParser:
                 if len(areas) > 1:
                     matchedParents = []
                     for area in areas:
-                        if cls.hasParent(area, address[followStart:]):
+                        if cls._hasParent(area, address[followStart:]):
                             matchedParents.append(area);
 
                     if len(matchedParents) > 0:
@@ -111,41 +111,41 @@ class AreaParser:
         return []
 
     @classmethod
-    def isChild(cls, parent, child):  
+    def _isChild(cls, parent, child):  
         """ 判断parent是否是child的上级区域
         """
-        return parent in cls.getParents(child)      
+        return parent in cls._getParents(child)      
     
     @classmethod
-    def getParents(cls, area):
+    def _getParents(cls, area):
         """ 获取指定区域的所有上级区域
         """
         parents = []
         parent = area.getParent();
         if parent:
             parents.append(parent)
-            parents.extend(cls.getParents(parent))    
+            parents.extend(cls._getParents(parent))    
         return parents       
     
     @classmethod
-    def hasParent(cls, area, string):
+    def _hasParent(cls, area, string):
         """ 在string中是否包含指定区域的上级区域
         """
-        parents = cls.getParents(area)
+        parents = cls._getParents(area)
         for parent in parents:            
-            if cls.hasAreaName(parent.name, string):
+            if cls._hasAreaName(parent.name, string):
                 return True                                     
         return False
     
     @classmethod
-    def hasAreaName(cls, areaName, string):
+    def _hasAreaName(cls, areaName, string):
         """ 判断在string中是否包含区域名称
         """
         position = string.find(areaName)
         if position >= 0:
             followString = string[position + len(areaName):]
             if ExcludeWordCache.isStartWith(followString):
-                return cls.hasAreaName(areaName, followString)
+                return cls._hasAreaName(areaName, followString)
             else:
                 return True;
            
