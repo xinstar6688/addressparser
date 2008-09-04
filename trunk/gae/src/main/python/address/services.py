@@ -26,6 +26,9 @@ class AreaParserService(RequestHandler):
         logging.info("got areas[%s] for %s" % (",".join([area.name for area in areas]), address))
 
         body = '{"areas":[%s]}' % ",".join([area.toJson() for area in areas])
+        callback = self.request.get("callback", None)
+        if callback:
+            body = ('%s(%s);' % (callback, body))
         self.response.out.write(body);
         self.response.headers["Content-type"] = "application/json"
         
