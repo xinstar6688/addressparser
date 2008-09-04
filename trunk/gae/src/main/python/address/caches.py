@@ -2,7 +2,7 @@
 
 from google.appengine.api import memcache
 
-class AbstractCache:   
+class AbstractCharCache:   
     @classmethod
     def put(cls, obj):
         cache = cls.getCache()
@@ -28,7 +28,7 @@ class AbstractCache:
         pass        
     
     
-class AreaCache(AbstractCache):
+class AreaCharCache(AbstractCharCache):
     _charCacheName = "address.models.Area.cache.chars"
     
     @classmethod
@@ -125,7 +125,7 @@ class AreaCache(AbstractCache):
         return cities
                 
 
-class ExcludeWordCache(AbstractCache):
+class ExcludeWordCharCache(AbstractCharCache):
     _cacheName = "address.models.ExcludeWord.cache"
     
     @classmethod

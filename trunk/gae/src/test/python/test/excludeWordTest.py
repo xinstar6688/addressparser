@@ -1,28 +1,28 @@
 # -*- coding: utf-8 -*-
 
 from StringIO import StringIO
-from address.caches import ExcludeWordCache
+from address.caches import ExcludeWordCharCache
 from address.services import ExcludeWordsService
 from test import BaseTestCase, excludeWords
 
 class ExcludeWordTest:
     def testEmptyReader(self):
-        self.assertFalse(ExcludeWordCache.isStartWith(u""))
+        self.assertFalse(ExcludeWordCharCache.isStartWith(u""))
 
     def testPartMatch(self):
-        self.assertFalse(ExcludeWordCache.isStartWith(u"中"))
+        self.assertFalse(ExcludeWordCharCache.isStartWith(u"中"))
 
     def testMatchInMiddle(self):
-        self.assertFalse(ExcludeWordCache.isStartWith(u"上中路口"))
+        self.assertFalse(ExcludeWordCharCache.isStartWith(u"上中路口"))
 
     def testNoOverlap(self):
-        self.assertTrue(ExcludeWordCache.isStartWith(u"西路23号"))
+        self.assertTrue(ExcludeWordCharCache.isStartWith(u"西路23号"))
 
     def testOverlap(self):
-        self.assertTrue(ExcludeWordCache.isStartWith(u"中街"))
+        self.assertTrue(ExcludeWordCharCache.isStartWith(u"中街"))
 
     def testLongest(self):
-        self.assertTrue(ExcludeWordCache.isStartWith(u"西街路口"))
+        self.assertTrue(ExcludeWordCharCache.isStartWith(u"西街路口"))
     
 class ExcludeWordsServiceTest(BaseTestCase):
     def prepareService(self, body):
@@ -46,7 +46,7 @@ class ExcludeWordsServiceTest(BaseTestCase):
 class ExcludeWordsServicePostTest(ExcludeWordsServiceTest):
     def testMatch(self):
         self.prepareService(u'{"word":"南路"}').post()
-        self.assertTrue(ExcludeWordCache.isStartWith(u"南路"))        
+        self.assertTrue(ExcludeWordCharCache.isStartWith(u"南路"))        
     
 
 class ExcludeWordsServicePutTest(ExcludeWordsServiceTest, ExcludeWordTest):
@@ -61,5 +61,5 @@ class ExcludeWordCacheTest(BaseTestCase, ExcludeWordTest):
     def setUp(self):
         BaseTestCase.setUp(self)
         for word in excludeWords:
-            ExcludeWordCache.put(word)      
+            ExcludeWordCharCache.put(word)      
         

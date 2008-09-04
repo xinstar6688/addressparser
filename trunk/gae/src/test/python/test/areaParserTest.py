@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from address.caches import ExcludeWordCache
+from address.caches import ExcludeWordCharCache
 from address.models import AreaParser
 from address.services import AreaParserService
 from test import BaseTestCase, excludeWords, areas
@@ -11,7 +11,7 @@ class AreaParserServiceTest(BaseTestCase):
         for area in areas:
             area.save()
         for word in excludeWords:
-            ExcludeWordCache.put(word) 
+            ExcludeWordCharCache.put(word) 
             
     def testGet(self):
         service = AreaParserService()
@@ -38,7 +38,7 @@ class AreaParserTest(BaseTestCase):
         for area in areas:
             area.save()
         for word in excludeWords:
-            ExcludeWordCache.put(word)      
+            ExcludeWordCharCache.put(word)      
 
     def testEmpty(self):
         self.assertEquals(0, len(AreaParser.parse(u"")))
