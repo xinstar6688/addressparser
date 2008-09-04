@@ -1,12 +1,24 @@
-import csv
 from datetime import datetime
+import base64
+import csv
 import httplib
 import time
 
-conn = httplib.HTTPConnection("localhost:8080")
-headers = {"Content-type": "application/json"}
+test = True
+
+if test:
+    conn = httplib.HTTPConnection("localhost:8080")
+    headers = {"Content-type": "application/json", "Cookie" : 'dev_appserver_login="test@example.com:True"'}
+    size = 20
+else:
+    username = "example"
+    password = "example"
+
+    conn = httplib.HTTPConnection("address.muthos.cn")
+    base64string = base64.encodestring('%s:%s' % (username, password))[:-1]
+    headers = {"Content-type": "application/json", 'Authorization': "Basic %s" % base64string}
+
 errors = []
-size = 20
 
 def importAreas():
     conn.request("DELETE", "/areas")
@@ -23,7 +35,7 @@ def importAreas():
         print "%s [import] %s" %(datetime.now(), area["code"])
         postArea(area)
         count += 1
-        if size and count >= size:
+        if test and count >= size:
             break
 
     while len(errors) != 0:
@@ -44,7 +56,7 @@ def postArea(area):
     try:
         conn.request("POST", "/areas", toJson(area), headers)
         response = conn.getresponse()
-        if response.status in (201, 204):
+        if response.status not in (201, 204):
             print "[server error]" + area["code"]
             errors.append(area) 
         conn.close()  
