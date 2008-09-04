@@ -34,6 +34,27 @@ class AreaParserService(RequestHandler):
 class AreasService(RequestHandler):
     def get(self):
         self.response.out.write(str(AreaCache.getCache()));
+    
+    def post(self):
+        try:
+            putArea = simplejson.load(self.request.body_file) 
+        except (ValueError, TypeError, IndexError):
+            self.response.set_status(400)
+            return
+        
+        if Area.getByCode(putArea["code"]):
+            self.response.set_status(409)
+            return
+            
+        area = Area()
+        for field in area.properties().keys():
+            newVal = putArea.get(field, None)
+            if newVal:
+                setattr(area, field, newVal)
+        area.put()
+        
+        AreaCache.put(putArea);
+        self.response.set_status(204)
         
     def delete(self):
         AreaCache.clear()
