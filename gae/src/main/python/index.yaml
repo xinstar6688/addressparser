@@ -1,0 +1,6 @@
+indexes:
+
+- kind: Area
+  properties:
+  - name: code
+
