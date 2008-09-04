@@ -6,23 +6,13 @@ from django.utils import simplejson
 from google.appengine.ext.webapp import RequestHandler
 import logging
 
-def toJson(area):
-    values = {}
-    
-    values["code"] = '"%s"' % area.code
-    values["name"] = '"%s"' % area.getFullName()    
-    parent = area.getParent()
-    if parent: values["parent"] = toJson(parent)
-        
-    return "{%s}" % ",".join(['"%s":%s' % (k,v) for k,v in values.items()])
-
 class AreaResource(RequestHandler):
     def get(self, code):
         logging.info("getting area[%s]" % code)
         area = Area.getByCode(code)
         if area:
             logging.info("got area[%s]" % code)
-            self.response.out.write(toJson(area));
+            self.response.out.write(area.toJson());
         else:
             logging.info("area[%s] not found" % code)
             self.response.set_status(404)
@@ -35,7 +25,7 @@ class AreaParserService(RequestHandler):
         areas = AreaParser.parse(address)
         logging.info("got areas[%s] for %s" % (",".join([area.name for area in areas]), address))
 
-        body = '{"areas":[%s]}' % ",".join([toJson(area) for area in areas])
+        body = '{"areas":[%s]}' % ",".join([area.toJson() for area in areas])
         self.response.out.write(body);
         
 class AreasService(RequestHandler):

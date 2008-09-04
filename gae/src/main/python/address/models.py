@@ -17,7 +17,8 @@ class Area(db.Model):
         area = self.getByCode(self.code)
          
         db.Model.put(self)
-        memcache.set(self._getCacheName(self.code), self)
+        AreaCache.set(self.code, self)
+        AreaJsonCache.delete(self.code)
         
         if area:
             if area.name != self.name:
@@ -29,15 +30,11 @@ class Area(db.Model):
     save = put
     
     @classmethod
-    def _getCacheName(cls, code):
-        return "address.models.Area.%s" % code
-    
-    @classmethod
     def getByCode(cls, code):
-        area = memcache.get(cls._getCacheName(code))
+        area = AreaCache.get(code)
         if not area:
             area = cls.gql("where code = :1", code).get()
-            memcache.set(cls._getCacheName(code), area)
+            AreaCache.set(code, area)
         return area
     
     def getParent(self):
@@ -47,11 +44,48 @@ class Area(db.Model):
         return "%s%s%s" % (self.name, self.middle and self.middle or "",
                            self.unit and self.unit or "")
 
+    def toJson(self):
+        json = AreaJsonCache.get(self.code)
+        if not json:
+            values = {}       
+            values["code"] = '"%s"' % self.code
+            values["name"] = '"%s"' % self.getFullName()    
+            parent = self.getParent()
+            if parent: values["parent"] = parent.toJson()
+                
+            json = "{%s}" % ",".join(['"%s":%s' % (k,v) for k,v in values.items()])
+
+        AreaJsonCache.set(self.code, json)
+        return json
+
     def __cmp__(self, area):
         if isinstance(area, Area):
             return cmp(self.code, area.code)
         else:
             return False
+        
+class AbstractCache:   
+    @classmethod
+    def _getCacheName(cls, code):
+        return "%s%s" % (cls._cachePrefix, code)
+
+    @classmethod
+    def get(cls, code):
+        return memcache.get(cls._getCacheName(code))
+    
+    @classmethod
+    def set(cls, code, obj):
+        memcache.set(cls._getCacheName(code), obj)
+        
+    @classmethod
+    def delete(cls, code):
+        memcache.delete(cls._getCacheName(code))
+
+class AreaCache(AbstractCache):
+    _cachePrefix = "address.models.Area."
+    
+class AreaJsonCache(AbstractCache):
+    _cachePrefix = "address.models.Area.json."
 
 class AreaParser:
     @classmethod
