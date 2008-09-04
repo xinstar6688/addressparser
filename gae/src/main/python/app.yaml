@@ -9,12 +9,14 @@ handlers:
 
 - url: /areas
   script: main.py
+  login: admin
 
 - url: /areas/[\w-]+
   script: main.py
 
 - url: /excludeWords
   script: main.py
+  login: admin
 
 - url: /
   static_dir: ./
