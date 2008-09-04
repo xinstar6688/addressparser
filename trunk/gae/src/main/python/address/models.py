@@ -60,7 +60,8 @@ class AreaParser:
         partAddress = address[start:]
         for i in range(len(partAddress)):
             # 获取匹配的区域， 如果指定parent， 则匹配的区域必须是parent的下级区域
-            areas = [area for area in AreaCache.getMatchedAreas(partAddress[i:]) if  (not parent) or cls.isChild(parent, area)]                       
+            areas = [Area.getByCode(code) for code in AreaCache.getMatchedAreas(partAddress[i:])]
+            areas = [area for area in areas if  (not parent) or cls.isChild(parent, area)]                       
             logging.debug("got areas[%s] for %s" % (",".join([area.name for area in areas]), address))
             
             if len(areas) > 0:
@@ -267,7 +268,7 @@ class AreaCache(AbstractCache):
                 cities = cls.doGetMatchedAreas(areaMap[char], address[1:])
 
         if len(cities) == 0 and areaMap.has_key(""):
-            cities = [Area.getByCode(code) for code in areaMap[""]]
+            cities = areaMap[""]
         return cities
                 
 
