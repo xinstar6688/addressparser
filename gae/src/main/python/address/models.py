@@ -135,19 +135,6 @@ class AreaParser:
     
 class AbstractCache:   
     @classmethod
-    def getCache(cls):
-        areaCache = memcache.get(cls.cacheName)
-        return areaCache and areaCache or {}
-    
-    @classmethod
-    def setCache(cls, areaCache):
-        memcache.set(cls.cacheName, areaCache)
-        
-    @classmethod
-    def clear(cls):
-        memcache.delete(cls.cacheName)
-        
-    @classmethod
     def put(cls, obj):
         cache = cls.getCache()
         cls.doPut(obj, cache, cls.getCacheString(obj))
@@ -173,11 +160,43 @@ class AbstractCache:
     
     
 class AreaCache(AbstractCache):
-    cacheName = "address.models.Area.cache"
+    _charCacheName = "address.models.Area.cache.chars"
+    
+    @classmethod
+    def getCache(cls, char):
+        areaCache = memcache.get(cls.getCacheName(char))
+        return areaCache and areaCache or {}
+    
+    @classmethod
+    def setCache(cls, char, areaCache):
+        memcache.set(cls.getCacheName(char), areaCache)
+
+        charCache = memcache.get(cls._charCacheName)
+        charCache = charCache and charCache or []
+        if  char not in charCache:
+            charCache.append(char)
+            memcache.set(cls._charCacheName, charCache)
+        
+    @classmethod
+    def clear(cls):
+        charCache = memcache.get(cls._charCacheName)
+        if not charCache: return
+        
+        for char in charCache:
+            memcache.delete(cls.getCacheName(char))
+        memcache.delete(cls._charCacheName)
+        
+    @classmethod
+    def getCacheName(cls, char):
+        return "address.models.Area.cache.%s" % char
 
     @classmethod
-    def getCacheString(cls, obj):
-        return obj["name"]
+    def put(cls, obj):
+        name = obj["name"]
+        char = name[:1]
+        cache = cls.getCache(char)
+        cls.doPut(obj, cache, name)
+        cls.setCache(char, cache)  
 
     @classmethod
     def doInPut(cls, parentMap, obj):
@@ -187,7 +206,7 @@ class AreaCache(AbstractCache):
                 
     @classmethod
     def getMatchedAreas(cls, address):
-        return cls.doGetMatchedAreas(cls.getCache(), address)
+        return cls.doGetMatchedAreas(cls.getCache(address[:1]), address)
 
     @classmethod
     def doGetMatchedAreas(cls, areaMap, address):
@@ -203,7 +222,20 @@ class AreaCache(AbstractCache):
                 
 
 class ExcludeWordCache(AbstractCache):
-    cacheName = "address.models.ExcludeWord.cache"
+    _cacheName = "address.models.ExcludeWord.cache"
+    
+    @classmethod
+    def getCache(cls):
+        areaCache = memcache.get(cls._cacheName)
+        return areaCache and areaCache or {}
+    
+    @classmethod
+    def setCache(cls, areaCache):
+        memcache.set(cls._cacheName, areaCache)
+        
+    @classmethod
+    def clear(cls):
+        memcache.delete(cls._cacheName)
 
     @classmethod
     def isStartWith(cls, address):
