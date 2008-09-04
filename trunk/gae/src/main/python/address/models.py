@@ -193,5 +193,3 @@ class AreaParser:
                 return cls._hasAreaName(areaName, followString)
             else:
                 return True;
-           
-    
