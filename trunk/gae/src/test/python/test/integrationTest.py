@@ -21,11 +21,6 @@ class ExcludeWordsServiceTest(TestCase):
         
 
 class AreasServiceTest(TestCase):
-    def testDelete(self):
-        conn.request("DELETE", "/areas", headers = headers)
-        response = conn.getresponse()
-        self.assertEqual(204, response.status)        
-    
     def testPost(self):
         self.postArea('{"code": "110000", "name": "北京", "unit": "市", "hasChild" : true}')
 

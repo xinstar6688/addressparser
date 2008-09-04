@@ -51,18 +51,6 @@ class AreasServiceTest(BaseTestCase):
         self.prepareService(u'{"middle": null, "code": "110000", "name": "北京", "unit": "市", "hasChild" : true}').post()
         areas = AreaCharCache.getMatchedAreas(u"北京")
         self.assertEqual(1, len(areas)); 
-                
-    def testClear(self):
-        service = AreasService(); 
-          
-        response = self.mocker.mock()
-        response.set_status(204)
-        service.response = response
-        self.mocker.replay()
-
-        service.delete()
-        
-        self.assertEqual(None, memcache.get("address.models.Area.cache"))
  
 class AreaCacheTest(BaseTestCase):        
     def setUp(self):

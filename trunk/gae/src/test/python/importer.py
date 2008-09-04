@@ -21,9 +21,6 @@ else:
 errors = []
 
 def importAreas():
-    conn.request("DELETE", "/areas")
-    conn.close()
-    
     count = 0
     reader = csv.reader(open("areas.csv", "rb"))
     areaName = ["code", "name", "parentArea", "unit", "middle", "hasChild"]
