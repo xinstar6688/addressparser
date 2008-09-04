@@ -13,6 +13,7 @@ class AreaResource(RequestHandler):
         if area:
             logging.info("got area[%s]" % code)
             self.response.out.write(area.toJson());
+            self.response.headers["Content-type"] = "application/json"
         else:
             logging.info("area[%s] not found" % code)
             self.response.set_status(404)
@@ -27,6 +28,7 @@ class AreaParserService(RequestHandler):
 
         body = '{"areas":[%s]}' % ",".join([area.toJson() for area in areas])
         self.response.out.write(body);
+        self.response.headers["Content-type"] = "application/json"
         
 class AreasService(RequestHandler):
     def post(self):

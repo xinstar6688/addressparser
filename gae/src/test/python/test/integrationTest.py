@@ -4,7 +4,7 @@ from unittest import TestCase
 import httplib
 
 conn = httplib.HTTPConnection("localhost:8080")
-headers = {"Content-type": "application/json"}
+headers = {"Content-type": "application/json", "Cookie" : 'dev_appserver_login="test@example.com:True"'}
 
 class ExcludeWordsServiceTest(TestCase):    
     def testPut(self):
@@ -22,7 +22,7 @@ class ExcludeWordsServiceTest(TestCase):
 
 class AreasServiceTest(TestCase):
     def testDelete(self):
-        conn.request("DELETE", "/areas")
+        conn.request("DELETE", "/areas", headers = headers)
         response = conn.getresponse()
         self.assertEqual(204, response.status)        
     
