@@ -12,6 +12,12 @@ class Area(db.Model):
     parentArea = db.StringProperty()
     hasChild = db.BooleanProperty()
     
+    def put(self):
+        db.Model.put(self)
+        AreaCache.put(self)
+    
+    save = put
+    
     @classmethod
     def _getCacheName(cls, code):
         return "address.models.Area.%s" % code
@@ -192,7 +198,7 @@ class AreaCache(AbstractCache):
 
     @classmethod
     def put(cls, obj):
-        name = obj["name"]
+        name = obj.name
         char = name[:1]
         cache = cls.getCache(char)
         cls.doPut(obj, cache, name)
@@ -202,7 +208,7 @@ class AreaCache(AbstractCache):
     def doInPut(cls, parentMap, obj):
         if not parentMap.has_key(""):
             parentMap[""] = []
-        parentMap[""].append(obj["code"])        
+        parentMap[""].append(obj.code)        
                 
     @classmethod
     def getMatchedAreas(cls, address):

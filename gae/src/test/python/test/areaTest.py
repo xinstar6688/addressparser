@@ -4,19 +4,19 @@ from StringIO import StringIO
 from address.models import AreaCache, Area
 from address.services import AreasService
 from google.appengine.api import memcache
-from test import BaseTestCase, areas, entities
+from test import BaseTestCase, areas
 
 class AreaTest(BaseTestCase):
     def setUp(self):
         BaseTestCase.setUp(self)
-        for entity in entities:
-            entity.save()
+        for area in areas:
+            area.save()
             
     def testGetParent(self):
-        self.assertEqual(entities[0].code, entities[1].getParent().code)
+        self.assertEqual(areas[0].code, areas[1].getParent().code)
         
     def testGetFullName(self):
-        self.assertEqual(u"浙江省", entities[0].getFullName())
+        self.assertEqual(u"浙江省", areas[0].getFullName())
         
     def testGetByCode(self):
         self.assertEqual(u"浙江", Area.getByCode("100000").name)
@@ -62,9 +62,7 @@ class AreaCacheTest(BaseTestCase):
     def setUp(self):
         BaseTestCase.setUp(self)
         for area in areas:
-            AreaCache.put(area)
-        for entity in entities:
-            entity.save()
+            area.save()
         
     def testEmptyReader(self):
         self.assertEquals(0, len(AreaCache.getMatchedAreas("")));

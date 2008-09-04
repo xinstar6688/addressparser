@@ -50,7 +50,6 @@ class AreasService(RequestHandler):
                 setattr(area, field, newVal)
         area.put()
         
-        AreaCache.put(putArea);
         self.response.set_status(204)
         
     def delete(self):
