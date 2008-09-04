@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from address.models import ExcludeWordCache, AreaParser
+from address.caches import ExcludeWordCache
+from address.models import AreaParser
 from address.services import AreaParserService
 from test import BaseTestCase, excludeWords, areas
 

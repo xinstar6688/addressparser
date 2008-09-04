@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from address.models import AreaParser, ExcludeWordCache, AreaCache, Area
+from address.caches import AreaCache, ExcludeWordCache
+from address.models import AreaParser, Area
 from django.utils import simplejson
 from google.appengine.ext.webapp import RequestHandler
 import logging

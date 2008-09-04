@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from StringIO import StringIO
-from address.models import AreaCache, Area
+from address.caches import AreaCache
+from address.models import Area
 from address.services import AreasService
 from google.appengine.api import memcache
 from test import BaseTestCase, areas
