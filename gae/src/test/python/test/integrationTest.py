@@ -35,5 +35,5 @@ class AreasServiceTest(TestCase):
     def postArea(self, json):
         conn.request("POST", "/areas", json, headers)
         response = conn.getresponse()
-        self.assertEqual(204, response.status)
+        self.assertTrue(response.status in (201, 204))
         

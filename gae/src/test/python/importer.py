@@ -44,7 +44,7 @@ def postArea(area):
     try:
         conn.request("POST", "/areas", toJson(area), headers)
         response = conn.getresponse()
-        if response.status != 204:
+        if response.status in (201, 204):
             print "[server error]" + area["code"]
             errors.append(area) 
         conn.close()  

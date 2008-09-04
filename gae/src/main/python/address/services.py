@@ -7,26 +7,28 @@ def toJson(area):
     values = {}
     
     values["code"] = '"%s"' % area.code
-    values["name"] = '"%s"' % area.getFullName()
-    
+    values["name"] = '"%s"' % area.getFullName()    
     parent = area.getParent()
-    if parent:
-        values["parent"] = toJson(parent)
+    if parent: values["parent"] = toJson(parent)
         
     return "{%s}" % ",".join(['"%s":%s' % (k,v) for k,v in values.items()])
 
 class AreaResource(RequestHandler):
     def get(self, code):
+        logging.info("getting area for %s" % code)
         area = Area.getByCode(code)
         if area:
+            logging.debug("got area for %s" % code)
             self.response.out.write(toJson(area));
         else:
+            logging.debug("area [%s] not found" % code)
             self.response.set_status(404)
 
 class AreaParserService(RequestHandler):
     def get(self):
         address = self.request.get("q")
         logging.info("parsing %s" % address)
+        
         areas = AreaParser.parse(address)
         body = '{"areas":[%s]}' % ",".join([toJson(area) for area in areas])
         self.response.out.write(body);
@@ -40,16 +42,19 @@ class AreasService(RequestHandler):
             return
         
         area = Area.getByCode(putArea["code"])
-        if not area:           
-            area = Area()
+        (area, created) = area and (area, False) or (Area(), True)
             
         for field in area.properties().keys():
             newVal = putArea.get(field, None)
             if newVal:
                 setattr(area, field, newVal)
-        area.put()
+        area.save()
         
-        self.response.set_status(204)
+        if created:
+            self.response.set_status(201)           
+            self.response.headers["Location"] = "/areas/%s" % area.code
+        else:
+            self.response.set_status(204)
         
     def delete(self):
         AreaCache.clear()
