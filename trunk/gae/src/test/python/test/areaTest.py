@@ -29,13 +29,18 @@ class AreasServiceTest(BaseTestCase):
         service = AreasService()
     
         response = self.mocker.mock()
-        response.set_status(204)
+        response.set_status(201)
         service.response = response
         
+        headers = self.mocker.mock()
+        response.headers
+        self.mocker.result(headers)
+        headers['Location'] = u'/areas/110000'
+       
         request = self.mocker.mock()
         request.body_file
         self.mocker.result(StringIO(body))
-        service.request = request   
+        service.request = request  
         
         self.mocker.replay()
         
