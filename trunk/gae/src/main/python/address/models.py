@@ -49,7 +49,7 @@ class Area(db.Model):
             values["code"] = '"%s"' % self.code
             values["name"] = '"%s"' % self.getFullName()    
             parent = self.getParent()
-            if parent: values["parent"] = parent.toJson()
+            if parent: values["parentArea"] = parent.toJson()
                 
             json = "{%s}" % ",".join(['"%s":%s' % (k,v) for k,v in values.items()])
 
