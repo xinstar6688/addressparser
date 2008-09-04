@@ -82,19 +82,19 @@ class AreaCacheTest(BaseTestCase):
     
 
     def testNoOverlap(self):
-        self.assertEquals(areas[1], AreaCache.getMatchedAreas(u"杭州")[0]);
+        self.assertEquals(areas[1].code, AreaCache.getMatchedAreas(u"杭州")[0]);
     
 
     def testOverlap(self):
-        self.assertEquals(areas[3], AreaCache.getMatchedAreas(u"南昌")[0]);
+        self.assertEquals(areas[3].code, AreaCache.getMatchedAreas(u"南昌")[0]);
     
 
     def testLongest(self):
-        self.assertEquals(areas[4], AreaCache.getMatchedAreas(u"南昌西北")[0]);
+        self.assertEquals(areas[4].code, AreaCache.getMatchedAreas(u"南昌西北")[0]);
     
 
     def testSameName(self):
         cities = AreaCache.getMatchedAreas(u"南京");
-        self.assertEquals(areas[7], cities[0]);
-        self.assertEquals(areas[10], cities[1]);
+        self.assertEquals(areas[7].code, cities[0]);
+        self.assertEquals(areas[10].code, cities[1]);
         
