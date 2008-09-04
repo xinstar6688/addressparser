@@ -19,6 +19,8 @@ class AreaParserServiceTest(BaseTestCase):
         request = self.mocker.mock()
         request.get("q")
         self.mocker.result(u"吉林长春XXX路234号")
+        request.get('callback', None)
+        self.mocker.result(None)
         service.request = request   
 
         response = self.mocker.mock()
