@@ -39,11 +39,10 @@ class AreasService(RequestHandler):
             self.response.set_status(400)
             return
         
-        if Area.getByCode(putArea["code"]):
-            self.response.set_status(409)
-            return
+        area = Area.getByCode(putArea["code"])
+        if not area:           
+            area = Area()
             
-        area = Area()
         for field in area.properties().keys():
             newVal = putArea.get(field, None)
             if newVal:

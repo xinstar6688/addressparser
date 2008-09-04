@@ -13,9 +13,18 @@ class Area(db.Model):
     hasChild = db.BooleanProperty()
     
     def put(self):
+        area = self.getByCode(self.code)
+         
         db.Model.put(self)
-        AreaCache.put(self)
-    
+        memcache.set(self._getCacheName(self.code), self)
+        
+        if not area:
+            AreaCache.put(self)
+        else:
+            if area.name != self.name:
+                AreaCache.remove(area)
+                AreaCache.put(self)
+        
     save = put
     
     @classmethod
@@ -209,6 +218,33 @@ class AreaCache(AbstractCache):
         if not parentMap.has_key(""):
             parentMap[""] = []
         parentMap[""].append(obj.code)        
+
+    @classmethod
+    def remove(cls, obj):
+        name = obj.name
+        char = name[:1]
+        cache = cls.getCache(char)
+        cls.doRemove(obj, cache, name)     
+        cls.setCache(char, cache)   
+        
+    @classmethod
+    def doRemove(cls, obj, parentMap, part):
+        if len(part) == 0:
+            cls.doInRemove(parentMap, obj)
+        else:
+            char = part[0]
+            childMap = parentMap.get(char, None)
+            if childMap:
+                cls.doRemove(obj, childMap, part[1:])
+                if len(childMap) == 0:
+                    del parentMap[char]
+                
+    @classmethod
+    def doInRemove(cls, parentMap, obj):
+        areas  = parentMap[""]
+        areas.remove(obj.code)
+        if len(areas) == 0:
+            del parentMap[""]
                 
     @classmethod
     def getMatchedAreas(cls, address):
