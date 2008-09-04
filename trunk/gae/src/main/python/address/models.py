@@ -191,6 +191,10 @@ class AreaCache(AbstractCache):
         if  char not in charCache:
             charCache.append(char)
             memcache.set(cls._charCacheName, charCache)
+           
+    @classmethod
+    def deleteCache(cls, char):
+        memcache.delete(cls.getCacheName(char))
         
     @classmethod
     def clear(cls):
@@ -198,7 +202,7 @@ class AreaCache(AbstractCache):
         if not charCache: return
         
         for char in charCache:
-            memcache.delete(cls.getCacheName(char))
+            cls.deleteCache(char)
         memcache.delete(cls._charCacheName)
         
     @classmethod
@@ -224,8 +228,12 @@ class AreaCache(AbstractCache):
         name = obj.name
         char = name[:1]
         cache = cls.getCache(char)
-        cls.doRemove(obj, cache, name)     
-        cls.setCache(char, cache)   
+        cls.doRemove(obj, cache, name)   
+        
+        if len(cache) > 0:  
+            cls.setCache(char, cache)  
+        else:
+            cls.deleteCache(char) 
         
     @classmethod
     def doRemove(cls, obj, parentMap, part):
