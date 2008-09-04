@@ -32,9 +32,6 @@ class AreaParserService(RequestHandler):
         self.response.out.write(body);
         
 class AreasService(RequestHandler):
-    def get(self):
-        self.response.out.write(str(AreaCache.getCache()));
-    
     def post(self):
         try:
             putArea = simplejson.load(self.request.body_file) 

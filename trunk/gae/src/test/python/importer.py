@@ -14,7 +14,7 @@ def importAreas():
     
     count = 0
     reader = csv.reader(open("areas.csv", "rb"))
-    areaName = ["code", "name", "parent", "unit", "middle", "hasChild"]
+    areaName = ["code", "name", "parentArea", "unit", "middle", "hasChild"]
     for row in reader:        
         areaValue = [str(unicode(cell, 'utf-8')) for cell in row]
         area = {}
