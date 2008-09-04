@@ -23,6 +23,6 @@ handlers:
   login: admin
 
 - url: /
-  static_dir: ./
+  static_dir: gwt
 
   
