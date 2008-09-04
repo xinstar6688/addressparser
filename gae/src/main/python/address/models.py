@@ -26,18 +26,6 @@ class Area(db.Model):
             AreaCharCache.put(self)
         else:
             AreaCharCache.put(self)
-    
-    @classmethod
-    def deleteAll(cls):
-        while True:
-            areas = cls.all().fetch(1000)
-            for area in areas: area.delete()
-            if len(areas) < 1000: break
-    
-    @classmethod
-    def clear(cls):
-        cls.deleteAll()
-        AreaCharCache.clear()
 
     @classmethod
     def getByCode(cls, code):
