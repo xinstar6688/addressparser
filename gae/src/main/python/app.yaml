@@ -22,6 +22,10 @@ handlers:
   script: main.py
   login: admin
 
+- url: (.*)/
+  static_files: gwt\1/index.html
+  upload: gwt/index.html
+
 - url: /
   static_dir: gwt
 
