@@ -63,7 +63,6 @@ def postArea(area):
     except: 
         print "[client error]" + area["code"]
         errors.append(area)
-        time.sleep(1)      
     
 def importExcludeWords():        
     reader = csv.reader(open("excludeWords.csv", "rb"))
