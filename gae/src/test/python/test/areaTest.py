@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from StringIO import StringIO
-from address.caches import AreaCache
+from address.caches import AreaCharCache
 from address.models import Area
 from address.services import AreasService
 from google.appengine.api import memcache
@@ -49,7 +49,7 @@ class AreasServiceTest(BaseTestCase):
     
     def testMatch(self):
         self.prepareService(u'{"middle": null, "code": "110000", "name": "北京", "unit": "市", "hasChild" : true}').post()
-        areas = AreaCache.getMatchedAreas(u"北京")
+        areas = AreaCharCache.getMatchedAreas(u"北京")
         self.assertEqual(1, len(areas)); 
                 
     def testClear(self):
@@ -71,31 +71,31 @@ class AreaCacheTest(BaseTestCase):
             area.save()
         
     def testEmptyReader(self):
-        self.assertEquals(0, len(AreaCache.getMatchedAreas("")));
+        self.assertEquals(0, len(AreaCharCache.getMatchedAreas("")));
 
 
     def testPartMatch(self):
-        self.assertEquals(0, len(AreaCache.getMatchedAreas(u"杭")));
+        self.assertEquals(0, len(AreaCharCache.getMatchedAreas(u"杭")));
     
 
     def testMatchInMiddle(self):
-        self.assertEquals(0, len(AreaCache.getMatchedAreas(u"大杭州市")));
+        self.assertEquals(0, len(AreaCharCache.getMatchedAreas(u"大杭州市")));
     
 
     def testNoOverlap(self):
-        self.assertEquals(areas[1].code, AreaCache.getMatchedAreas(u"杭州")[0]);
+        self.assertEquals(areas[1].code, AreaCharCache.getMatchedAreas(u"杭州")[0]);
     
 
     def testOverlap(self):
-        self.assertEquals(areas[3].code, AreaCache.getMatchedAreas(u"南昌")[0]);
+        self.assertEquals(areas[3].code, AreaCharCache.getMatchedAreas(u"南昌")[0]);
     
 
     def testLongest(self):
-        self.assertEquals(areas[4].code, AreaCache.getMatchedAreas(u"南昌西北")[0]);
+        self.assertEquals(areas[4].code, AreaCharCache.getMatchedAreas(u"南昌西北")[0]);
     
 
     def testSameName(self):
-        cities = AreaCache.getMatchedAreas(u"南京");
+        cities = AreaCharCache.getMatchedAreas(u"南京");
         self.assertEquals(areas[7].code, cities[0]);
         self.assertEquals(areas[10].code, cities[1]);
         

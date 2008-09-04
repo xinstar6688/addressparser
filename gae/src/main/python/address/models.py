@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from address.caches import AreaCache, ExcludeWordCache
+from address.caches import AreaCharCache, ExcludeWordCharCache
 from google.appengine.api import memcache
 from google.appengine.ext import db
 import logging
@@ -21,10 +21,10 @@ class Area(db.Model):
         
         if area:
             if area.name != self.name:
-                AreaCache.remove(area)
-                AreaCache.put(self)
+                AreaCharCache.remove(area)
+                AreaCharCache.put(self)
         else:
-            AreaCache.put(self)
+            AreaCharCache.put(self)
         
     save = put
     
@@ -61,7 +61,7 @@ class AreaParser:
         
         for i in range(len(address)):
             # 获取匹配的区域， 如果指定parent， 则匹配的区域必须是parent的下级区域
-            areas = [Area.getByCode(code) for code in AreaCache.getMatchedAreas(address[i:])]
+            areas = [Area.getByCode(code) for code in AreaCharCache.getMatchedAreas(address[i:])]
             areas = [area for area in areas if  (not parent) or cls._isChild(parent, area)]                       
             logging.debug("got areas[%s] for %s" % (",".join([area.name for area in areas]), address))
             
@@ -70,7 +70,7 @@ class AreaParser:
                
                 #如果区域后面跟着特定的词语，如”路“， 则忽略这个区域
                 #如”湖南路“就不应该认为是”湖南省“
-                if ExcludeWordCache.isStartWith(address[followStart:]): continue
+                if ExcludeWordCharCache.isStartWith(address[followStart:]): continue
                 
                 #如果区域还有下级区域的话，则在后面字符串中继续查找下级区域，然后用找到的下级区域代替上级区域
                 childrenAreas = []
@@ -138,7 +138,7 @@ class AreaParser:
         position = string.find(areaName)
         if position >= 0:
             followString = string[position + len(areaName):]
-            if ExcludeWordCache.isStartWith(followString):
+            if ExcludeWordCharCache.isStartWith(followString):
                 return cls._hasAreaName(areaName, followString)
             else:
                 return True;
