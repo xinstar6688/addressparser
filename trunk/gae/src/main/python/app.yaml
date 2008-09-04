@@ -4,9 +4,6 @@ runtime: python
 api_version: 1
 
 handlers:
-- url: /load
-  script: address/areaLoader.py
-
 - url: /parse
   script: main.py
 

@@ -24,7 +24,28 @@ class AreaTest(BaseTestCase):
 class AreasServiceTest(BaseTestCase):
     def setUp(self):
         BaseTestCase.setUp(self)             
+
+    def prepareService(self, body):
+        service = AreasService()
+    
+        response = self.mocker.mock()
+        response.set_status(204)
+        service.response = response
         
+        request = self.mocker.mock()
+        request.body_file
+        self.mocker.result(StringIO(body))
+        service.request = request   
+        
+        self.mocker.replay()
+        
+        return service
+    
+    def testMatch(self):
+        self.prepareService(u'{"middle": null, "code": "110000", "name": "北京", "unit": "市", "hasChild" : true}').post()
+        areas = AreaCache.getMatchedAreas(u"北京")
+        self.assertEqual(1, len(areas)); 
+                
     def testClear(self):
         service = AreasService(); 
           
