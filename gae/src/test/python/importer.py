@@ -8,7 +8,7 @@ test = True
 
 if test:
     conn = httplib.HTTPConnection("localhost:8080")
-    headers = {"Content-type": "application/json", "Cookie" : 'dev_appserver_login="test@example.com:True"'}
+    headers = {"Content-type": "application/json", "Cookie" : r'dev_appserver_login="test@example.com:True"'}
     size = 20
 else:
     username = "example"

@@ -75,7 +75,10 @@ class AreaCharCache(AbstractCharCache):
     def doInPut(cls, parentMap, obj):
         if not parentMap.has_key(""):
             parentMap[""] = []
-        parentMap[""].append(obj.code)        
+        code = obj.code
+        map = parentMap[""]
+        if code not in map:
+            map.append(code)        
 
     @classmethod
     def remove(cls, obj):

@@ -23,11 +23,9 @@ class Area(db.Model):
         if area:
             if area.name != self.name:
                 AreaCharCache.remove(area)
-                AreaCharCache.put(self)
+            AreaCharCache.put(self)
         else:
             AreaCharCache.put(self)
-        
-    save = put
     
     @classmethod
     def deleteAll(cls):
@@ -82,8 +80,6 @@ class ExcludeWord(db.Model):
     def put(self):
         db.Model.put(self)
         ExcludeWordCharCache.put(self.word)
-
-    save = put
 
     @classmethod
     def deleteAll(cls):
