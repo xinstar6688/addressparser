@@ -9,7 +9,7 @@ class AreaParserServiceTest(BaseTestCase):
     def setUp(self):
         BaseTestCase.setUp(self)
         for area in areas:
-            area.save()
+            area.put()
         for word in excludeWords:
             ExcludeWordCharCache.put(word) 
             
@@ -41,7 +41,7 @@ class AreaParserTest(BaseTestCase):
     def setUp(self):
         BaseTestCase.setUp(self)
         for area in areas:
-            area.save()
+            area.put()
         for word in excludeWords:
             ExcludeWordCharCache.put(word)      
 

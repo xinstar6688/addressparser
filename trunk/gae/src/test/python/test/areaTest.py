@@ -11,7 +11,7 @@ class AreaTest(BaseTestCase):
     def setUp(self):
         BaseTestCase.setUp(self)
         for area in areas:
-            area.save()
+            area.put()
             
     def testGetParent(self):
         self.assertEqual(areas[0].code, areas[1].getParent().code)
@@ -68,7 +68,7 @@ class AreaCacheTest(BaseTestCase):
     def setUp(self):
         BaseTestCase.setUp(self)
         for area in areas:
-            area.save()
+            area.put()
         
     def testEmptyReader(self):
         self.assertEquals(0, len(AreaCharCache.getMatchedAreas("")));

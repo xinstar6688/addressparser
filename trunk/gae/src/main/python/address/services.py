@@ -47,12 +47,12 @@ class AreasService(RequestHandler):
             newVal = putArea.get(field, None)
             if newVal:
                 setattr(area, field, newVal)
-        area.save()
+        area.put()
         
         if created:
             logging.info("area[%s] is created " % code)
             self.response.set_status(201)           
-            self.response.headers["Location"] = "/areas/%s" % code
+            self.response.headers["Location"] = str("/areas/%s" % code)
         else:
             logging.info("area[%s] is modified" % code)
             self.response.set_status(204)
@@ -77,7 +77,7 @@ class ExcludeWordsService(RequestHandler):
         logging.info("exclude words are cleared")
         
         for word in words:
-            ExcludeWord(word = word).save()
+            ExcludeWord(word = word).put()
         logging.info("exclude words[%s] are put" % ",".join(words))
             
         self.response.set_status(204)
@@ -90,7 +90,7 @@ class ExcludeWordsService(RequestHandler):
             return
         
         logging.info("posting exclude word[%s]" % word)
-        ExcludeWord(word = word).save()
+        ExcludeWord(word = word).put()
         logging.info("exclude word[%s] is post" % word)
 
         self.response.set_status(204)
