@@ -1,0 +1,32 @@
+application: address-parser
+version: 2
+runtime: python
+api_version: 1
+
+handlers:
+- url: /favicon.ico
+  static_files: images/favicon.ico
+  upload: images/favicon.ico
+
+- url: /parse
+  script: main.py
+
+- url: /areas/[\w-]+
+  script: main.py
+
+- url: /areas
+  script: main.py
+  login: admin
+
+- url: /excludeWords
+  script: main.py
+  login: admin
+
+- url: (.*)/
+  static_files: gwt\1/index.html
+  upload: gwt/index.html
+
+- url: /
+  static_dir: gwt
+
+  
