@@ -1,8 +1,5 @@
 package cn.muthos.address.client;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.http.client.URL;
 import com.google.gwt.json.client.JSONArray;
@@ -23,15 +20,9 @@ import com.google.gwt.user.client.ui.Widget;
  * Entry point classes define <code>onModuleLoad()</code>.
  */
 public class Index implements JsonHandler {
-	private static final List<String> excludeAreas = new ArrayList<String>();
+	private static final String[] excludeAreas = new String[]{"市辖区", "所属县"};
 	private static final String JSON_URL = "http://address.muthos.cn/parse?q=";
-	private int jsonRequestId = 0;
 	private Label label = new Label();
-
-	static {
-		excludeAreas.add("市辖区");
-		excludeAreas.add("所属县");
-	}
 	
 	public void onModuleLoad() {
 		VerticalPanel vPanel = new VerticalPanel();
@@ -56,7 +47,7 @@ public class Index implements JsonHandler {
 			public void onClick(Widget sender) {
 				String url = URL.encode(JSON_URL + text.getText()
 						+ "&callback=");
-				getJson(jsonRequestId++, url, Index.this);
+				getJson(url, Index.this);
 			}
 		});
 	}
@@ -68,9 +59,14 @@ public class Index implements JsonHandler {
 	
 	private String getAreaName(JSONObject area) {
 		String name = area.get("name").isString().stringValue();
-		if (excludeAreas.contains(name)) {
-			name = "";
+		
+		for (String excludeArea : excludeAreas) {
+			if (excludeArea.equals(name)) {
+				name = "";
+				break;
+			}			
 		}
+
 		JSONValue parent = area.get("parentArea");
 		if (parent == null) {
 			return name;
@@ -104,29 +100,35 @@ public class Index implements JsonHandler {
 		}
 	}
 
-	public native static void getJson(int requestId, String url,
-			JsonHandler handler) /*-{
-	   var callback = "callback" + requestId;
+	public native static void getJson(String url, JsonHandler handler) /*-{
+	   if (!window["callbacks"]) {
+	       window["callbacks"] = {};
+	   }	   
+	   var callbacks = window["callbacks"];
 	   
-	   var script = document.createElement("script");
-	   script.setAttribute("src", url+callback);
-	   script.setAttribute("type", "text/javascript");
+	   var uid = (new Date()).getTime();
+	   var uid_done = uid + "done";
 
-	   window[callback] = function(jsonObj) {
+	   var script = document.createElement("script");
+	   script.setAttribute("src", url+"callbacks[" + uid + "]");
+	   script.setAttribute("type", "text/javascript");
+	   script.charset = "utf-8"
+	   
+	   callbacks[uid] = function(jsonObj) {
 	     handler.@cn.muthos.address.client.JsonHandler::handleJsonResponse(Lcom/google/gwt/core/client/JavaScriptObject;)(jsonObj);
-	     window[callback + "done"] = true;
+	     callbacks[uid_done] = true;
 	   }
 	   
 	   // JSON download has 1-second timeout
 	   setTimeout(function() {
-	     if (!window[callback + "done"]) {
+	     if (!callbacks[uid_done]) {
 	       handler.@cn.muthos.address.client.JsonHandler::handleJsonResponse(Lcom/google/gwt/core/client/JavaScriptObject;)(null);
 	     } 
 
 	     // cleanup
 	     document.body.removeChild(script);
-	     delete window[callback];
-	     delete window[callback + "done"];
+	     delete callbacks[uid];
+	     delete callbacks[uid_done];
 	   }, 2000);
 	   
 	   document.body.appendChild(script);
