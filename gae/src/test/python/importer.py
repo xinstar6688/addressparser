@@ -2,7 +2,6 @@ from datetime import datetime
 import base64
 import csv
 import httplib
-import time
 
 test = True
 
