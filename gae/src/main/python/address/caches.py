@@ -106,10 +106,12 @@ class AreaCharCache(AbstractCharCache):
                 
     @classmethod
     def doInRemove(cls, parentMap, obj):
-        areas  = parentMap[""]
-        areas.remove(obj.code)
-        if len(areas) == 0:
-            del parentMap[""]
+        areas  = parentMap.get("", None)
+        if (areas):
+            if (obj.code in areas):
+                areas.remove(obj.code)
+            if len(areas) == 0:
+                del parentMap[""]
                 
     @classmethod
     def getMatchedAreas(cls, address):
