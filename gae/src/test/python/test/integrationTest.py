@@ -22,10 +22,10 @@ class ExcludeWordsServiceTest(TestCase):
 
 class AreasServiceTest(TestCase):
     def testPost(self):
-        self.postArea('{"code": "110000", "name": "北京", "unit": "市", "hasChild" : true}')
+        self.postArea('{"code": "110000", "name": "北京市", "alias": "北京", "hasChild" : true}')
 
     def testPostChild(self):
-        self.postArea('{"code": "110100", "name": "东城", "unit": "区", "parent" : "110000", "hasChild" : false}')
+        self.postArea('{"code": "110100", "name": "东城区", "alias": "东城", "parent" : "110000", "hasChild" : false}')
         
     def postArea(self, json):
         conn.request("POST", "/areas", json, headers)

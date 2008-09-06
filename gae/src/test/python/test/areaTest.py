@@ -4,7 +4,6 @@ from StringIO import StringIO
 from address.caches import AreaCharCache
 from address.models import Area
 from address.services import AreasService
-from google.appengine.api import memcache
 from test import BaseTestCase, areas
 
 class AreaTest(BaseTestCase):
@@ -16,11 +15,8 @@ class AreaTest(BaseTestCase):
     def testGetParent(self):
         self.assertEqual(areas[0].code, areas[1].getParent().code)
         
-    def testGetFullName(self):
-        self.assertEqual(u"浙江省", areas[0].getFullName())
-        
     def testGetByCode(self):
-        self.assertEqual(u"浙江", Area.getByCode("100000").name)
+        self.assertEqual(u"浙江省", Area.getByCode("100000").name)
 
 class AreasServiceTest(BaseTestCase):
     def setUp(self):
@@ -48,7 +44,7 @@ class AreasServiceTest(BaseTestCase):
         return service
     
     def testMatch(self):
-        self.prepareService(u'{"middle": null, "code": "110000", "name": "北京", "unit": "市", "hasChild" : true}').post()
+        self.prepareService(u'{"code": "110000", "alias": "北京", "name": "北京市", "hasChild" : true}').post()
         areas = AreaCharCache.getMatchedAreas(u"北京")
         self.assertEqual(1, len(areas)); 
  
