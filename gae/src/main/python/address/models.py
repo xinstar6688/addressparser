@@ -26,12 +26,13 @@ class Area(db.Model):
     
     @classmethod
     def deleteAll(cls):
+        query = cls.all()
         while True:
-            areas = cls.all().fetch(1000)
+            areas = query.fetch(100)
             for area in areas: 
                 AreaCache.delete(area)
                 area.delete()
-            if len(areas) < 1000: break
+            if len(areas) < 100: break
     
     @classmethod
     def clear(cls):
@@ -78,10 +79,11 @@ class ExcludeWord(db.Model):
 
     @classmethod
     def deleteAll(cls):
+        query = cls.all()
         while True:
-            words = cls.all().fetch(1000)
+            words = query.fetch(100)
             for word in words: word.delete()
-            if len(words) < 1000: break
+            if len(words) < 100: break
     
     @classmethod
     def clear(cls):
