@@ -21,11 +21,22 @@ class Area(db.Model):
         AreaCache.set(self.code, self)
         AreaJsonCache.delete(self.code)
         
-        if area:
-            AreaCharCache.remove(area)
-            AreaCharCache.put(self)
-        else:
-            AreaCharCache.put(self)
+        if area and area.alias: AreaCharCache.remove(area)
+        if self.alias: AreaCharCache.put(self)
+    
+    @classmethod
+    def deleteAll(cls):
+        while True:
+            areas = cls.all().fetch(1000)
+            for area in areas: 
+                AreaCache.delete(area)
+                area.delete()
+            if len(areas) < 1000: break
+    
+    @classmethod
+    def clear(cls):
+        cls.deleteAll()
+        AreaCharCache.clear()
 
     @classmethod
     def getByCode(cls, code):
