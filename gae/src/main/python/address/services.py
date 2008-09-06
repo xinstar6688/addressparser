@@ -59,6 +59,13 @@ class AreasService(RequestHandler):
         else:
             logging.info("area[%s] is modified" % code)
             self.response.set_status(204)
+
+    def delete(self):
+        logging.info("clearing all areas")
+        Area.clear()
+        
+        logging.info("all areas are cleared")
+        self.response.set_status(204)
         
 class ExcludeWordsService(RequestHandler):
     def put(self):

@@ -20,13 +20,17 @@ else:
 errors = []
 
 def importAreas():
+    conn.request("DELETE", "/areas", headers = headers)
+    conn.close()
+
     count = 0
     reader = csv.reader(open("areas.csv", "rb"))
     areaName = ["code", "name", "parentArea", "hasChild", "alphaCode", "pinyin", "alias"]
+    fieldLength = len(areaName)
     for row in reader:        
         areaValue = [str(unicode(cell, 'utf-8')) for cell in row]
         area = {}
-        for i in range(6):
+        for i in range(fieldLength):
             area[areaName[i]] = areaValue[i]
         print "%s [import] %s" %(datetime.now(), area["code"])
         postArea(area)
