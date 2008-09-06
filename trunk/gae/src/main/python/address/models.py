@@ -8,10 +8,11 @@ import logging
 class Area(db.Model):
     code = db.StringProperty()
     name = db.StringProperty()
-    middle = db.StringProperty()
-    unit = db.StringProperty()
     parentArea = db.StringProperty()
     hasChild = db.BooleanProperty()
+    alphaCode = db.StringProperty()
+    pinyin = db.StringProperty()
+    alias = db.StringProperty()
     
     def put(self):
         area = self.getByCode(self.code)
@@ -21,8 +22,7 @@ class Area(db.Model):
         AreaJsonCache.delete(self.code)
         
         if area:
-            if area.name != self.name:
-                AreaCharCache.remove(area)
+            AreaCharCache.remove(area)
             AreaCharCache.put(self)
         else:
             AreaCharCache.put(self)
@@ -37,17 +37,13 @@ class Area(db.Model):
     
     def getParent(self):
         return self.getByCode(self.parentArea)
-    
-    def getFullName(self):
-        return "%s%s%s" % (self.name, self.middle and self.middle or "",
-                           self.unit and self.unit or "")
-
+ 
     def toJson(self):
         json = AreaJsonCache.get(self.code)
         if not json:
             values = {}       
             values["code"] = '"%s"' % self.code
-            values["name"] = '"%s"' % self.getFullName()    
+            values["name"] = '"%s"' % self.name    
             parent = self.getParent()
             if parent: values["parentArea"] = parent.toJson()
                 
@@ -117,7 +113,7 @@ class AreaParser:
             logging.debug("got areas[%s] for %s" % (",".join([area.name for area in areas]), address))
             
             if len(areas) > 0:
-                followStart = i + len(areas[0].name)                
+                followStart = i + len(areas[0].alias)                
                
                 #如果区域后面跟着特定的词语，如”路“， 则忽略这个区域
                 #如”湖南路“就不应该认为是”湖南省“
@@ -178,7 +174,7 @@ class AreaParser:
         """
         parents = cls._getParents(area)
         for parent in parents:            
-            if cls._hasAreaName(parent.name, string):
+            if cls._hasAreaName(parent.alias, string):
                 return True                                     
         return False
     

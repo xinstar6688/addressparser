@@ -65,7 +65,7 @@ class AreaCharCache(AbstractCharCache):
 
     @classmethod
     def put(cls, obj):
-        name = obj.name
+        name = obj.alias
         char = name[:1]
         cache = cls.getCache(char)
         cls.doPut(obj, cache, name)
@@ -82,7 +82,7 @@ class AreaCharCache(AbstractCharCache):
 
     @classmethod
     def remove(cls, obj):
-        name = obj.name
+        name = obj.alias
         char = name[:1]
         cache = cls.getCache(char)
         cls.doRemove(obj, cache, name)   
