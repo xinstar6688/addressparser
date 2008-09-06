@@ -22,7 +22,7 @@ errors = []
 def importAreas():
     count = 0
     reader = csv.reader(open("areas.csv", "rb"))
-    areaName = ["code", "name", "parentArea", "unit", "middle", "hasChild"]
+    areaName = ["code", "name", "parentArea", "hasChild", "alphaCOde", "shortName"]
     for row in reader:        
         areaValue = [str(unicode(cell, 'utf-8')) for cell in row]
         area = {}
