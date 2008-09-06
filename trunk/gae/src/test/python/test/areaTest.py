@@ -4,6 +4,7 @@ from StringIO import StringIO
 from address.caches import AreaCharCache
 from address.models import Area
 from address.services import AreasService
+from google.appengine.api import memcache
 from test import BaseTestCase, areas
 
 class AreaTest(BaseTestCase):
@@ -47,6 +48,18 @@ class AreasServiceTest(BaseTestCase):
         self.prepareService(u'{"code": "110000", "alias": "北京", "name": "北京市", "hasChild" : true}').post()
         areas = AreaCharCache.getMatchedAreas(u"北京")
         self.assertEqual(1, len(areas)); 
+                
+    def testClear(self):
+        service = AreasService(); 
+          
+        response = self.mocker.mock()
+        response.set_status(204)
+        service.response = response
+        self.mocker.replay()
+
+        service.delete()
+        
+        self.assertEqual(None, memcache.get("address.models.Area.cache"))
  
 class AreaCacheTest(BaseTestCase):        
     def setUp(self):
