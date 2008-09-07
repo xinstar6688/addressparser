@@ -65,7 +65,12 @@ class AreaCharCache(AbstractCharCache):
 
     @classmethod
     def put(cls, obj):
-        name = obj.alias
+        cls._put(obj, obj.name)
+        for name in obj.alias:
+            cls._put(obj, name)
+            
+    @classmethod
+    def _put(cls, obj, name):
         char = name[:1]
         cache = cls.getCache(char)
         cls.doPut(obj, cache, name)
@@ -82,15 +87,20 @@ class AreaCharCache(AbstractCharCache):
 
     @classmethod
     def remove(cls, obj):
-        name = obj.alias
-        char = name[:1]
-        cache = cls.getCache(char)
-        cls.doRemove(obj, cache, name)   
-        
-        if len(cache) > 0:  
-            cls.setCache(char, cache)  
-        else:
-            cls.deleteCache(char) 
+        cls._remove(obj, obj.name)
+        for name in obj.alias:
+            cls._remove(obj, name)
+            
+    @classmethod
+    def _remove(cls, obj, name):
+            char = name[:1]
+            cache = cls.getCache(char)
+            cls.doRemove(obj, cache, name)   
+            
+            if len(cache) > 0:  
+                cls.setCache(char, cache)  
+            else:
+                cls.deleteCache(char) 
         
     @classmethod
     def doRemove(cls, obj, parentMap, part):
@@ -118,15 +128,15 @@ class AreaCharCache(AbstractCharCache):
         return cls.doGetMatchedAreas(cls.getCache(address[:1]), address)
 
     @classmethod
-    def doGetMatchedAreas(cls, areaMap, address):
-        cities = []
+    def doGetMatchedAreas(cls, areaMap, address, depth = 0):
+        cities = ([], depth)
         if len(address) > 0:
             char = address[0]
             if areaMap.has_key(char):
-                cities = cls.doGetMatchedAreas(areaMap[char], address[1:])
+                cities = cls.doGetMatchedAreas(areaMap[char], address[1:], depth + 1)
 
-        if len(cities) == 0 and areaMap.has_key(""):
-            cities = areaMap[""]
+        if len(cities[0]) == 0 and areaMap.has_key(""):
+            cities = (areaMap[""], depth)
         return cities
                 
 

@@ -20,7 +20,7 @@ class AreaResource(RequestHandler):
 class AreaParserService(RequestHandler):
     def get(self):
         address = self.request.get("q")
-        logging.info("parsing %s" % address)
+        logging.info("parsing %s" % self._normalize(address))
         
         areas = AreaParser.parse(address)
         logging.info("got areas[%s] for %s" % (",".join([area.name for area in areas]), address))
@@ -31,6 +31,9 @@ class AreaParserService(RequestHandler):
             body = ('%s(%s);' % (callback, body))
         self.response.out.write(body);
         self.response.headers["Content-type"] = "application/json"
+        
+    def _normalize(self, address):
+        return address
         
 class AreasService(RequestHandler):
     def post(self):
@@ -49,7 +52,10 @@ class AreasService(RequestHandler):
         for field in area.properties().keys():
             newVal = putArea.get(field, None)
             if newVal:
-                setattr(area, field, newVal)
+                if field == "alias":
+                    setattr(area, field, newVal.split())
+                else:
+                    setattr(area, field, newVal)
         area.put()
         
         if created:

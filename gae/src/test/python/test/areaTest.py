@@ -13,6 +13,9 @@ class AreaTest(BaseTestCase):
         for area in areas:
             area.put()
             
+    def testGetFullName(self):
+        self.assertEqual(u"浙江省杭州市", Area.getByCode("101000").getFullName())       
+            
     def testGetParent(self):
         self.assertEqual(areas[0].code, areas[1].getParent().code)
         
@@ -47,7 +50,7 @@ class AreasServiceTest(BaseTestCase):
     def testMatch(self):
         self.prepareService(u'{"code": "110000", "alias": "北京", "name": "北京市", "hasChild" : true}').post()
         areas = AreaCharCache.getMatchedAreas(u"北京")
-        self.assertEqual(1, len(areas)); 
+        self.assertEqual(1, len(areas[0])); 
                 
     def testClear(self):
         service = AreasService(); 
@@ -68,31 +71,31 @@ class AreaCacheTest(BaseTestCase):
             area.put()
         
     def testEmptyReader(self):
-        self.assertEquals(0, len(AreaCharCache.getMatchedAreas("")));
+        self.assertEquals(0, len(AreaCharCache.getMatchedAreas("")[0]));
 
 
     def testPartMatch(self):
-        self.assertEquals(0, len(AreaCharCache.getMatchedAreas(u"杭")));
+        self.assertEquals(0, len(AreaCharCache.getMatchedAreas(u"杭")[0]));
     
 
     def testMatchInMiddle(self):
-        self.assertEquals(0, len(AreaCharCache.getMatchedAreas(u"大杭州市")));
+        self.assertEquals(0, len(AreaCharCache.getMatchedAreas(u"大杭州市")[0]));
     
 
     def testNoOverlap(self):
-        self.assertEquals(areas[1].code, AreaCharCache.getMatchedAreas(u"杭州")[0]);
+        self.assertEquals(areas[1].code, AreaCharCache.getMatchedAreas(u"杭州")[0][0]);
     
 
     def testOverlap(self):
-        self.assertEquals(areas[3].code, AreaCharCache.getMatchedAreas(u"南昌")[0]);
+        self.assertEquals(areas[3].code, AreaCharCache.getMatchedAreas(u"南昌")[0][0]);
     
 
     def testLongest(self):
-        self.assertEquals(areas[4].code, AreaCharCache.getMatchedAreas(u"南昌西北")[0]);
+        self.assertEquals(areas[4].code, AreaCharCache.getMatchedAreas(u"南昌西北")[0][0]);
     
 
     def testSameName(self):
         cities = AreaCharCache.getMatchedAreas(u"南京");
-        self.assertEquals(areas[7].code, cities[0]);
-        self.assertEquals(areas[10].code, cities[1]);
+        self.assertEquals(areas[7].code, cities[0][0]);
+        self.assertEquals(areas[10].code, cities[0][1]);
         
