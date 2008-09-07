@@ -20,7 +20,7 @@ import com.google.gwt.user.client.ui.Widget;
  * Entry point classes define <code>onModuleLoad()</code>.
  */
 public class Index implements JsonHandler {
-	private static final String[] excludeAreas = new String[]{"市辖区", "所属县"};
+	private static final String[] excludeAreas = new String[]{"市辖区", "县"};
 	private static final String JSON_URL = "http://address.muthos.cn/parse?q=";
 	private Label label = new Label();
 	
@@ -129,7 +129,7 @@ public class Index implements JsonHandler {
 	     document.body.removeChild(script);
 	     delete callbacks[uid];
 	     delete callbacks[uid_done];
-	   }, 2000);
+	   }, 5000);
 	   
 	   document.body.appendChild(script);
 	}-*/;
