@@ -197,9 +197,12 @@ class AreaParser:
         """
         parents = cls._getParents(area)
         for parent in parents:   
-            for name in parent.alias:         
-                if cls._hasAreaName(name, string):
-                    return True                                     
+            if cls._hasAreaName(parent.name, string):
+                return True 
+            if parent.alias:                                     
+                for name in parent.alias:         
+                    if cls._hasAreaName(name, string):
+                        return True                                     
         return False
     
     @classmethod

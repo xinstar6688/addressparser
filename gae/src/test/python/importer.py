@@ -1,5 +1,4 @@
 from datetime import datetime
-import base64
 import csv
 import httplib
 
@@ -10,12 +9,8 @@ if test:
     headers = {"Content-type": "application/json", "Cookie" : r'dev_appserver_login="test@example.com:True"'}
     size = 20
 else:
-    username = "example"
-    password = "example"
-
     conn = httplib.HTTPConnection("address.muthos.cn")
-    base64string = base64.encodestring('%s:%s' % (username, password))[:-1]
-    headers = {"Content-type": "application/json", 'Authorization': "Basic %s" % base64string}
+    headers = {"Content-type": "application/json"}
 
 errors = []
 
