@@ -2,7 +2,9 @@
 
 from address.models import AreaParser, Area, ExcludeWord
 from django.utils import simplejson
+from google.appengine.api import urlfetch
 from google.appengine.ext.webapp import RequestHandler
+from sgmllib import SGMLParser
 import logging
 
 class AreaResource(RequestHandler):
@@ -20,9 +22,15 @@ class AreaResource(RequestHandler):
 class AreaParserService(RequestHandler):
     def get(self):
         address = self.request.get("q")
-        logging.info("parsing %s" % self._normalize(address))
+        logging.info("parsing %s" % address)
         
-        areas = AreaParser.parse(address)
+        normalizedAddresses = AddressNormalizer.normalize(address)
+        if len(normalizedAddresses) == 0:
+            normalizedAddresses = [address]
+        areas = []
+        for normalizedAddress in normalizedAddresses:
+            areas.extend(AreaParser.parse(normalizedAddress)) 
+        
         logging.info("got areas[%s] for %s" % (",".join([area.name for area in areas]), address))
 
         body = '{"areas":[%s]}' % ",".join([area.toJson() for area in areas])
@@ -31,9 +39,48 @@ class AreaParserService(RequestHandler):
             body = ('%s(%s);' % (callback, body))
         self.response.out.write(body);
         self.response.headers["Content-type"] = "application/json"
+    
+class AddressNormalizer:
+    _url = "http://ditu.google.cn/maps?output=js&q="
+    
+    @classmethod
+    def normalize(cls, address):
+        result = urlfetch.fetch(cls._url + address)
+        if result.status_code == 200:
+            charset = result.headers["Content-Type"].partition("charset=")[2]
+            if charset.lower() == "gb2312" : charset = "gbk"
+            content = result.content.decode(charset)
+            content = content.partition('panel:"')[2].partition('",panelStyle:')[0]
+            content = content.replace(r"\x3c", "<")
+            content = content.replace(r"\x3e", ">")
+            content = content.replace(r"\x26", "&")
+            content = content.replace(r'\ "', '"')
+            content = content.replace(r'\"', '"')
+            
+            parser = AddressHTMLProcessor()
+            parser.feed(content)
+            parser.close()
+            return parser.found
         
-    def _normalize(self, address):
-        return address
+class AddressHTMLProcessor(SGMLParser):
+    _find = False;
+    found = []
+
+    def reset(self):
+        self.found = []
+        SGMLParser.reset(self)
+        
+    def start_div(self, attrs):
+        for attr in attrs:
+            if (attr[0] == "class" and attr[1] in ("ref_desc", "adr")):
+                self._find = True
+                
+    def handle_data(self, text):
+        if self._find:
+            self.found.append(text)
+            
+    def end_div(self):
+        self._find = False
         
 class AreasService(RequestHandler):
     def post(self):
@@ -86,7 +133,7 @@ class ExcludeWordsService(RequestHandler):
         logging.info("exclude words are cleared")
         
         for word in words:
-            ExcludeWord(word = word).put()
+            ExcludeWord(word=word).put()
         logging.info("exclude words[%s] are put" % ",".join(words))
             
         self.response.set_status(204)
@@ -99,7 +146,7 @@ class ExcludeWordsService(RequestHandler):
             return
         
         logging.info("posting exclude word[%s]" % word)
-        ExcludeWord(word = word).put()
+        ExcludeWord(word=word).put()
         logging.info("exclude word[%s] is post" % word)
 
         self.response.set_status(204)
