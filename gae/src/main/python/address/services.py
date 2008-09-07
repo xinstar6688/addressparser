@@ -6,6 +6,7 @@ from google.appengine.api import urlfetch
 from google.appengine.ext.webapp import RequestHandler
 from sgmllib import SGMLParser
 import logging
+import urllib
 
 class AreaResource(RequestHandler):
     def get(self, code):
@@ -14,7 +15,7 @@ class AreaResource(RequestHandler):
         if area:
             logging.info("got area[%s]" % code)
             self.response.out.write(area.toJson());
-            self.response.headers["Content-type"] = "application/json"
+            self.response.headers["Content-type"] = "application/json;charset=utf-8"
         else:
             logging.info("area[%s] not found" % code)
             self.response.set_status(404)
@@ -38,14 +39,15 @@ class AreaParserService(RequestHandler):
         if callback:
             body = ('%s(%s);' % (callback, body))
         self.response.out.write(body);
-        self.response.headers["Content-type"] = "application/json"
+        self.response.headers["Content-type"] = "application/json;charset=utf-8"
     
 class AddressNormalizer:
-    _url = "http://ditu.google.cn/maps?output=js&q="
+    _url = "http://ditu.google.cn/maps?"
     
     @classmethod
     def normalize(cls, address):
-        result = urlfetch.fetch(cls._url + unicode(address))
+        params = {"output":"js", "q":address.encode('utf-8')}
+        result = urlfetch.fetch("%s%s" %(cls._url, urllib.urlencode(params)))
         if result.status_code == 200:
             charset = result.headers["Content-Type"].partition("charset=")[2]
             if charset.lower() == "gb2312" : charset = "gbk"
