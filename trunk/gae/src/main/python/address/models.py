@@ -9,11 +9,19 @@ class Area(db.Model):
     code = db.StringProperty()
     name = db.StringProperty()
     parentArea = db.StringProperty()
-    hasChild = db.BooleanProperty()
+    hasChild = db.BooleanProperty(default=False)
     alphaCode = db.StringProperty()
     pinyin = db.StringProperty()
-    alias = db.StringProperty()
+    alias = db.StringListProperty(default = [])
+    postCode = db.StringProperty()
     
+    def getFullName(self):
+        parent = self.getParent()
+        if parent:
+            return parent.getFullName() + self.name
+        else:
+            return self.name
+        
     def put(self):
         area = self.getByCode(self.code)
          
@@ -21,8 +29,8 @@ class Area(db.Model):
         AreaCache.set(self.code, self)
         AreaJsonCache.delete(self.code)
         
-        if area and area.alias: AreaCharCache.remove(area)
-        if self.alias: AreaCharCache.put(self)
+        if area: AreaCharCache.remove(area)
+        AreaCharCache.put(self)
     
     @classmethod
     def deleteAll(cls):
@@ -56,6 +64,7 @@ class Area(db.Model):
             values = {}       
             values["code"] = '"%s"' % self.code
             values["name"] = '"%s"' % self.name    
+            values["postCode"] = '"%s"' % (self.postCode and self.postCode or "")
             parent = self.getParent()
             if parent: values["parentArea"] = parent.toJson()
                 
@@ -121,12 +130,13 @@ class AreaParser:
         
         for i in range(len(address)):
             # 获取匹配的区域， 如果指定parent， 则匹配的区域必须是parent的下级区域
-            areas = [Area.getByCode(code) for code in AreaCharCache.getMatchedAreas(address[i:])]
+            (areas, depth) = AreaCharCache.getMatchedAreas(address[i:])
+            areas = [Area.getByCode(code) for code in areas]
             areas = [area for area in areas if  (not parent) or cls._isChild(parent, area)]                       
             logging.debug("got areas[%s] for %s" % (",".join([area.name for area in areas]), address))
             
             if len(areas) > 0:
-                followStart = i + len(areas[0].alias)                
+                followStart = i + depth                
                
                 #如果区域后面跟着特定的词语，如”路“， 则忽略这个区域
                 #如”湖南路“就不应该认为是”湖南省“
@@ -186,9 +196,10 @@ class AreaParser:
         """ 在string中是否包含指定区域的上级区域
         """
         parents = cls._getParents(area)
-        for parent in parents:            
-            if cls._hasAreaName(parent.alias, string):
-                return True                                     
+        for parent in parents:   
+            for name in parent.alias:         
+                if cls._hasAreaName(name, string):
+                    return True                                     
         return False
     
     @classmethod
