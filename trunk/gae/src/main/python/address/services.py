@@ -45,7 +45,7 @@ class AddressNormalizer:
     
     @classmethod
     def normalize(cls, address):
-        result = urlfetch.fetch(cls._url + address)
+        result = urlfetch.fetch(cls._url + unicode(address))
         if result.status_code == 200:
             charset = result.headers["Content-Type"].partition("charset=")[2]
             if charset.lower() == "gb2312" : charset = "gbk"

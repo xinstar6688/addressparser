@@ -65,9 +65,11 @@ class AreaCharCache(AbstractCharCache):
 
     @classmethod
     def put(cls, obj):
-        cls._put(obj, obj.name)
-        for name in obj.alias:
-            cls._put(obj, name)
+        if obj.alphaCode:
+            cls._put(obj, obj.name)
+            if obj.alias:
+                for name in obj.alias:
+                    cls._put(obj, name)
             
     @classmethod
     def _put(cls, obj, name):
@@ -87,9 +89,11 @@ class AreaCharCache(AbstractCharCache):
 
     @classmethod
     def remove(cls, obj):
-        cls._remove(obj, obj.name)
-        for name in obj.alias:
-            cls._remove(obj, name)
+        if obj.alphaCode:
+            cls._remove(obj, obj.name)
+            if obj.alias:
+                for name in obj.alias:
+                    cls._remove(obj, name)
             
     @classmethod
     def _remove(cls, obj, name):
