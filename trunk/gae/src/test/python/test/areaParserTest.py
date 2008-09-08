@@ -27,13 +27,13 @@ class AreaParserServiceTest(BaseTestCase):
         out = self.mocker.mock()
         response.out
         self.mocker.result(out)
-        out.write(u'{"areas":[{"parentArea":{"code":"500000","name":"\u5409\u6797\u7701","postCode":""},"code":"502000","name":"\u957f\u6625\u5e02","postCode":"330000"}]}')
+        out.write(u'{"areas":[{"address":"\u5409\u6797\u957f\u6625XXX\u8def234\u53f7", "areaCode":"502000"}]}')
         service.response = response
 
         headers = self.mocker.mock()
         response.headers
         self.mocker.result(headers)
-        headers["Content-type"] = "application/json"
+        headers["Content-type"] = "application/json;charset=utf-8"
         
         self.mocker.replay()
         

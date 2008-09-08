@@ -14,7 +14,11 @@ class AreaResource(RequestHandler):
         area = Area.getByCode(code)
         if area:
             logging.info("got area[%s]" % code)
-            self.response.out.write(area.toJson());
+            body = area.toJson()
+            callback = self.request.get("callback", None)
+            if callback:
+                body = ('%s(%s);' % (callback, body))
+            self.response.out.write(body);
             self.response.headers["Content-type"] = "application/json;charset=utf-8"
         else:
             logging.info("area[%s] not found" % code)
@@ -30,11 +34,12 @@ class AreaParserService(RequestHandler):
             normalizedAddresses = [address]
         areas = []
         for normalizedAddress in normalizedAddresses:
-            areas.extend(AreaParser.parse(normalizedAddress)) 
-        
-        logging.info("got areas[%s] for %s" % (",".join([area.name for area in areas]), address))
+            parsedAreas = AreaParser.parse(normalizedAddress);
+            logging.info("got areas[%s] for %s" % (",".join([area.name for area in parsedAreas]), normalizedAddress))
+            for parsedArea in parsedAreas:
+                areas.append((normalizedAddress, parsedArea.code))
 
-        body = '{"areas":[%s]}' % ",".join([area.toJson() for area in areas])
+        body = '{"areas":[%s]}' % ",".join(['{"address":"%s", "areaCode":"%s"}' % area for area in areas])
         callback = self.request.get("callback", None)
         if callback:
             body = ('%s(%s);' % (callback, body))
