@@ -19,85 +19,108 @@ import com.google.gwt.user.client.ui.Widget;
 /**
  * Entry point classes define <code>onModuleLoad()</code>.
  */
-public class Index implements JsonHandler {
-	private static final String[] excludeAreas = new String[]{"市辖区", "县"};
-	private static final String JSON_URL = "http://address.muthos.cn/parse?q=";
+public class Index {
+	private static final String[] excludeAreas = new String[] { "市辖区", "县" };
+	private static final String JSON_URL = "http://localhost:8080";
 	private Label label = new Label();
+	private VerticalPanel resultPanel = new VerticalPanel();
+
+	private JsonHandler addressHandler = new JsonHandler() {
+		public void handleJsonResponse(JavaScriptObject jso) {
+			resultPanel.clear();
+
+			if (jso == null) {
+				displayError("Couldn't retrieve JSON");
+				return;
+			}
+
+			try {
+				// parse the response text into JSON
+				JSONObject jsonObject = new JSONObject(jso);
+				JSONArray jsonArray = jsonObject.get("areas").isArray();
+
+				StringBuffer result = new StringBuffer();
+				for (int i = 0; i < jsonArray.size(); i++) {
+					JSONObject area = jsonArray.get(i).isObject();
+					resultPanel.add(new Label(area.get("address").isString().stringValue()));
+					String url = URL.encode(JSON_URL + "/areas/" + area.get("areaCode").isString().stringValue()
+							+ "?callback=");
+					getJson(url, areaHandler);					
+				}
+
+				label.setText(result.toString());
+			} catch (JSONException e) {
+				displayError("Could not parse JSON");
+			}
+		}
+	};
 	
+	private JsonHandler areaHandler = new JsonHandler() {
+		private String getAreaName(JSONObject area) {
+			String name = area.get("name").isString().stringValue();
+
+			for (String excludeArea : excludeAreas) {
+				if (excludeArea.equals(name)) {
+					name = "";
+					break;
+				}
+			}
+
+			JSONValue parent = area.get("parentArea");
+			if (parent == null) {
+				return name;
+			}
+			return getAreaName(parent.isObject()) + name;
+		}
+
+		public void handleJsonResponse(JavaScriptObject jso) {
+			if (jso == null) {
+				displayError("Couldn't retrieve JSON");
+				return;
+			}
+
+			try {
+				// parse the response text into JSON
+				JSONObject jsonObject = new JSONObject(jso);
+				resultPanel.add(new Label("    属于:  " + getAreaName(jsonObject)));
+			} catch (JSONException e) {
+				displayError("Could not parse JSON");
+			}
+		}	
+	};
+
 	public void onModuleLoad() {
 		VerticalPanel vPanel = new VerticalPanel();
 		vPanel.setSpacing(50);
-		vPanel.setSize(Window.getClientWidth() - 100 + "px", 
-				Window.getClientHeight() - 100 + "px");
+		vPanel.setSize(Window.getClientWidth() - 100 + "px", Window
+				.getClientHeight()
+				- 100 + "px");
 		vPanel.setHorizontalAlignment(VerticalPanel.ALIGN_CENTER);
 		vPanel.setVerticalAlignment(VerticalPanel.ALIGN_TOP);
 		RootPanel.get().add(vPanel);
 
 		HorizontalPanel hPanel = new HorizontalPanel();
-		vPanel.add(hPanel);		
-		
+		vPanel.add(hPanel);
+
 		final TextBox text = new TextBox();
 		hPanel.add(text);
 		Button button = new Button("Parse It");
 		hPanel.add(button);
-		
+
 		vPanel.add(label);
+		vPanel.add(resultPanel);
 
 		button.addClickListener(new ClickListener() {
 			public void onClick(Widget sender) {
-				String url = URL.encode(JSON_URL + text.getText()
+				String url = URL.encode(JSON_URL + "/parse?q=" + text.getText()
 						+ "&callback=");
-				getJson(url, Index.this);
+				getJson(url, addressHandler);
 			}
 		});
 	}
 
 	private void displayError(String message) {
 		label.setText(message);
-	}
-	
-	
-	private String getAreaName(JSONObject area) {
-		String name = area.get("name").isString().stringValue();
-		
-		for (String excludeArea : excludeAreas) {
-			if (excludeArea.equals(name)) {
-				name = "";
-				break;
-			}			
-		}
-
-		JSONValue parent = area.get("parentArea");
-		if (parent == null) {
-			return name;
-		}
-		return getAreaName(parent.isObject()) + name;
-	}
-
-	public void handleJsonResponse(JavaScriptObject jso) {
-		if (jso == null) {
-			displayError("Couldn't retrieve JSON");
-			return;
-		}
-
-		try {
-			// parse the response text into JSON
-			JSONObject jsonObject = new JSONObject(jso);
-			JSONArray jsonArray = jsonObject.get("areas").isArray();
-
-			StringBuffer result = new StringBuffer();
-			for (int i = 0; i < jsonArray.size(); i++) {
-				if (i > 0) {
-					result.append("/");
-				}
-				JSONObject area = jsonArray.get(i).isObject();
-				result.append(getAreaName(area));
-			}
-
-			label.setText(result.toString());
-		} catch (JSONException e) {
-			displayError("Could not parse JSON");
-		}
 	}
 
 	public native static void getJson(String url, JsonHandler handler) /*-{
