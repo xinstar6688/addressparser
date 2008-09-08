@@ -48,7 +48,7 @@ class AreasServiceTest(BaseTestCase):
         return service
     
     def testMatch(self):
-        self.prepareService(u'{"code": "110000", "alias": "北京", "name": "北京市", "hasChild" : true}').post()
+        self.prepareService(u'{"code": "110000", "alias": "北京", "name": "北京市", "hasChild" : true, "alphaCode": "AA"}').post()
         areas = AreaCharCache.getMatchedAreas(u"北京")
         self.assertEqual(1, len(areas[0])); 
                 
