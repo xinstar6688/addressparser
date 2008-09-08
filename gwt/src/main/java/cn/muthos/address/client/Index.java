@@ -5,7 +5,6 @@ import com.google.gwt.http.client.URL;
 import com.google.gwt.json.client.JSONArray;
 import com.google.gwt.json.client.JSONException;
 import com.google.gwt.json.client.JSONObject;
-import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.ClickListener;
@@ -20,7 +19,6 @@ import com.google.gwt.user.client.ui.Widget;
  * Entry point classes define <code>onModuleLoad()</code>.
  */
 public class Index {
-	private static final String[] excludeAreas = new String[] { "市辖区", "县" };
 	private static final String JSON_URL = "http://address.muthos.cn";
 	private Label label = new Label();
 	private VerticalPanel resultPanel = new VerticalPanel();
@@ -43,9 +41,6 @@ public class Index {
 				for (int i = 0; i < jsonArray.size(); i++) {
 					JSONObject area = jsonArray.get(i).isObject();
 					resultPanel.add(new Label(area.get("address").isString().stringValue()));
-					String url = URL.encode(JSON_URL + "/areas/" + area.get("areaCode").isString().stringValue()
-							+ "?callback=");
-					getJson(url, areaHandler);					
 				}
 
 				label.setText(result.toString());
@@ -55,40 +50,6 @@ public class Index {
 		}
 	};
 	
-	private JsonHandler areaHandler = new JsonHandler() {
-		private String getAreaName(JSONObject area) {
-			String name = area.get("name").isString().stringValue();
-
-			for (String excludeArea : excludeAreas) {
-				if (excludeArea.equals(name)) {
-					name = "";
-					break;
-				}
-			}
-
-			JSONValue parent = area.get("parentArea");
-			if (parent == null) {
-				return name;
-			}
-			return getAreaName(parent.isObject()) + name;
-		}
-
-		public void handleJsonResponse(JavaScriptObject jso) {
-			if (jso == null) {
-				displayError("Couldn't retrieve JSON");
-				return;
-			}
-
-			try {
-				// parse the response text into JSON
-				JSONObject jsonObject = new JSONObject(jso);
-				resultPanel.add(new Label("    属于:  " + getAreaName(jsonObject)));
-			} catch (JSONException e) {
-				displayError("Could not parse JSON");
-			}
-		}	
-	};
-
 	public void onModuleLoad() {
 		VerticalPanel vPanel = new VerticalPanel();
 		vPanel.setSpacing(50);
