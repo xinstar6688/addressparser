@@ -6,6 +6,7 @@ from google.appengine.api import urlfetch
 from google.appengine.ext.webapp import RequestHandler
 from sgmllib import SGMLParser
 import logging
+import re
 import urllib
 
 class AreaResource(RequestHandler):
@@ -35,10 +36,10 @@ class AreaParserService(RequestHandler):
         areas = []
         for normalizedAddress in normalizedAddresses:
             parsedAreas = AreaParser.parse(normalizedAddress);
-            logging.info("got areas[%s] for %s" % (",".join([area.name for area in parsedAreas]), normalizedAddress))
             for parsedArea in parsedAreas:
                 areas.append((normalizedAddress, parsedArea.code))
 
+        logging.info("got areas[%s] for %s" % (",".join([area[1] for area in areas]), address))
         body = '{"areas":[%s]}' % ",".join(['{"address":"%s", "areaCode":"%s"}' % area for area in areas])
         callback = self.request.get("callback", None)
         if callback:
@@ -47,6 +48,8 @@ class AreaParserService(RequestHandler):
         self.response.headers["Content-type"] = "application/json;charset=utf-8"
     
 class AddressNormalizer:
+    _words = {"\\x3c": "<", "\\x3e": ">", "\\x26": "&", '\\ "': '"','\\"': '"'}
+    _replaceRegex = re.compile("(%s)" % "|".join(map(re.escape, _words.keys())))
     _url = "http://ditu.google.cn/maps?"
     
     @classmethod
@@ -58,19 +61,21 @@ class AddressNormalizer:
             if charset.lower() == "gb2312" : charset = "gbk"
             content = result.content.decode(charset)
             content = content.partition('panel:"')[2].partition('",panelStyle:')[0]
-            content = content.replace(r"\x3c", "<")
-            content = content.replace(r"\x3e", ">")
-            content = content.replace(r"\x26", "&")
-            content = content.replace(r'\ "', '"')
-            content = content.replace(r'\"', '"')
+            content = cls.multiple_replace(content)
             
             parser = AddressHTMLProcessor()
             parser.feed(content)
             parser.close()
             return parser.found
         
+    @classmethod
+    def multiple_replace(cls, text): 
+        # For each match, look-up corresponding value in dictionary
+        return cls._replaceRegex.sub(lambda mo: cls._words[mo.string[mo.start():mo.end()]], text) 
+        
 class AddressHTMLProcessor(SGMLParser):
     _find = False;
+    _address = '';
     found = []
 
     def reset(self):
@@ -84,9 +89,12 @@ class AddressHTMLProcessor(SGMLParser):
                 
     def handle_data(self, text):
         if self._find:
-            self.found.append(text)
+            self._address += text
             
     def end_div(self):
+        if len(self._address):
+            self.found.append(self._address)
+            self._address=''
         self._find = False
         
 class AreasService(RequestHandler):
