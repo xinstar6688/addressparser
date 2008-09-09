@@ -32,7 +32,7 @@
 			<version>${gwt.version}</version>
 			<scope>system</scope>
 			<systemPath>
-				${google.webtoolkit.home}/gwt-dev-${os.family}.jar
+				${google.webtoolkit.home}/gwt-user.jar
 			</systemPath>
 		</dependency>
 		<dependency>
@@ -41,7 +41,7 @@
 			<version>${gwt.version}</version>
 			<scope>system</scope>
 			<systemPath>
-				${google.webtoolkit.home}/gwt-user.jar
+				${google.webtoolkit.home}/gwt-dev-${os.family}.jar
 			</systemPath>
 		</dependency>
 	</dependencies>
