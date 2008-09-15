@@ -84,7 +84,7 @@ class AddressHTMLProcessor(SGMLParser):
         
     def start_div(self, attrs):
         for attr in attrs:
-            if (attr[0] == "class" and attr[1] in ("ref_desc", "adr")):
+            if (attr[0] == "class" and attr[1] in ("ref", "adr")):
                 self._find = True
                 
     def handle_data(self, text):
