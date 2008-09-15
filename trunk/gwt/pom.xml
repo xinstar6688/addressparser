@@ -15,7 +15,7 @@
 	<name>Chinese Address Parser GWT</name>
 
 	<properties>
-		<gwt.version>1.5.1</gwt.version>
+		<gwt.version>1.5.2</gwt.version>
 		<google.webtoolkit.home>${env.GWT_HOME}</google.webtoolkit.home>
 	</properties>
 
@@ -39,13 +39,6 @@
 			</systemPath>
 		</dependency>
 	</dependencies>
-
-	<repositories>
-		<repository>
-			<id>restlet</id>
-			<url>http://maven.restlet.org/</url>
-		</repository>
-	</repositories>
 
 	<pluginRepositories>
 		<pluginRepository>
