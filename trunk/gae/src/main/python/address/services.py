@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from address.models import AreaParser, Area, ExcludeWord
+from address.models import AreaParser, Area, ExcludeWord, Address
 from django.utils import simplejson
 from google.appengine.api import urlfetch
 from google.appengine.ext.webapp import RequestHandler
@@ -166,3 +166,23 @@ class ExcludeWordsService(RequestHandler):
 
         self.response.set_status(204)
         
+class AddressService(RequestHandler):
+    def post(self):
+        try:
+            postaddress = simplejson.load(self.request.body_file) 
+        except (ValueError, TypeError, IndexError):
+            self.response.set_status(400)
+            return
+        addressName = postaddress["name"]
+        logging.info("posting address[%s]" % addressName)
+         
+        address = Address(name = addressName)
+        address.put()
+        
+        address = Address.getByName(addressName)
+        logging.info("address name %s is posting" % address.name)
+        logging.info("address time %s is posting" % address.time)
+        if address:
+            self.response.set_status(201)
+        else:
+            self.response.set_status(204)
