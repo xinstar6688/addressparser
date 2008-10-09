@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from address.caches import ExcludeWordCharCache
-from address.models import AreaParser
+from address.models import AreaParser, Address
 from address.services import AreaParserService
-from test import BaseTestCase, excludeWords, areas
+from test import BaseTestCase, excludeWords, areas, address
 
 class AreaParserServiceTest(BaseTestCase):
     def setUp(self):
@@ -12,6 +12,7 @@ class AreaParserServiceTest(BaseTestCase):
             area.put()
         for word in excludeWords:
             ExcludeWordCharCache.put(word) 
+        address.put()
             
     def testGet(self):
         service = AreaParserService()
@@ -96,4 +97,9 @@ class AreaParserTest(BaseTestCase):
         cities = AreaParser.parse(u"湖南南京市XXX路234号")
         self.assertEquals(1, len(cities))
         self.assertEquals(areas[10], cities[0])
+        
+    def testRecodeUnparesedAddress(self):
+        AreaParser.parse(u"上海市天山路600号")
+        upparsedAddress = Address.getByName(u"上海市天山路600号")
+        self.assertEquals(address, upparsedAddress)
     

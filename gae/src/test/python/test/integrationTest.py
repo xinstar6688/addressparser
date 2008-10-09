@@ -37,3 +37,8 @@ class AreasServiceTest(TestCase):
         response = conn.getresponse()
         self.assertTrue(response.status in (201, 204))
         
+class AddressServiceTest(TestCase):
+    def testPost(self):
+        conn.request("POST", "/address", '{"name": "1234567890"}', headers)
+        response = conn.getresponse()
+        self.assertEqual(201, response.status)   
