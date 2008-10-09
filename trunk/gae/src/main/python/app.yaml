@@ -21,6 +21,10 @@ handlers:
 - url: /excludeWords
   script: main.py
   login: admin
+  
+- url: /address
+  script: main.py
+  login: admin
 
 - url: (.*)/
   static_files: gwt\1/index.html
@@ -28,5 +32,3 @@ handlers:
 
 - url: /
   static_dir: gwt
-
-  
