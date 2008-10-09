@@ -78,6 +78,21 @@ class Area(db.Model):
             return cmp(self.code, area.code)
         else:
             return False
+ 
+class Address(db.Model):
+    name = db.StringProperty()
+    time = db.DateTimeProperty(auto_now_add=True)
+    
+    @classmethod
+    def getByName(cls, name):
+        address = cls.gql("where name = :1", name).get()
+        return address
+    
+    def __cmp__(self, address):
+        if isinstance(address, Address):
+            return cmp(self.name, address.name)
+        else:
+            return False
         
 class ExcludeWord(db.Model):
     word = db.StringProperty()
@@ -134,7 +149,7 @@ class AreaParser:
             areas = [Area.getByCode(code) for code in areas]
             areas = [area for area in areas if  (not parent) or cls._isChild(parent, area)]                       
             logging.debug("got areas[%s] for %s" % (",".join([area.name for area in areas]), address))
-            
+                  
             if len(areas) > 0:
                 followStart = i + depth                
                
@@ -171,7 +186,12 @@ class AreaParser:
                 
                 logging.debug("areas[%s] after matched parents for %s" % (",".join([area.name for area in areas]), address))
 
-                return areas           
+                return areas
+            
+        '''record unparsed address --- BENSON'''
+        unparsedAddress = Address(name = address)
+        unparsedAddress.put()
+               
         return []
 
     @classmethod
