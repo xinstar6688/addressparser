@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from address.models import Area
+from address.models import Area, Address
 from google.appengine.api import apiproxy_stub_map, datastore_file_stub, \
     user_service_stub, urlfetch_stub, mail_stub
 from google.appengine.api.memcache import memcache_stub
@@ -37,5 +37,7 @@ areas = [Area(code = u"100000", alias = [u"浙江"], name = u"浙江省", hasChi
      Area(code = u"500000", alias = [u"吉林"], name = u"吉林省", hasChild = True, alphaCode="EA"), 
      Area(code = u"501000" , alias = [u"吉林"], name = u"吉林市", parentArea = "500000", hasChild = True, alphaCode="EB"),
      Area(code = u"502000" , alias = [u"长春"], name = u"长春市", parentArea = "500000", hasChild = False, postCode = "330000", alphaCode="EC")]
+
+address = Address(name = u"上海市天山路600号")
 
 excludeWords = [u"路", u"中路", u"中路", u"西路", u"中街", u"西街路口"]
