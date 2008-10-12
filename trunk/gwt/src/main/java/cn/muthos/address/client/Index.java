@@ -1,5 +1,6 @@
 package cn.muthos.address.client;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.http.client.URL;
 import com.google.gwt.json.client.JSONArray;
@@ -19,7 +20,7 @@ import com.google.gwt.user.client.ui.Widget;
  * Entry point classes define <code>onModuleLoad()</code>.
  */
 public class Index {
-	private static final String JSON_URL = "http://address.muthos.cn";
+	private static final String JSON_URL = GWT.getModuleBaseURL();
 	private Label label = new Label();
 	private VerticalPanel resultPanel = new VerticalPanel();
 
