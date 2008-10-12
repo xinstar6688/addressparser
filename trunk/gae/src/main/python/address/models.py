@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from address.caches import AreaCharCache, ExcludeWordCharCache
-from google.appengine.api import memcache
+from google.appengine.api import memcache, mail
 from google.appengine.ext import db
 import logging
 
@@ -24,7 +24,7 @@ class Area(db.Model):
         
     def put(self):
         area = self.getByCode(self.code)
-         
+        
         db.Model.put(self)
         AreaCache.set(self.code, self)
         AreaJsonCache.delete(self.code)
@@ -191,7 +191,7 @@ class AreaParser:
         '''record unparsed address --- BENSON'''
         unparsedAddress = Address(name = address)
         unparsedAddress.put()
-               
+        UnparsedAddressSending.sendMail(unparsedAddress) 
         return []
 
     @classmethod
@@ -236,3 +236,14 @@ class AreaParser:
                 return cls._hasAreaName(areaName, followString)
             else:
                 return True;
+
+class UnparsedAddressSending:
+    _sender = "kuisong.tong@gmail.com"
+    _reciever = "chenzhangzi@gmail.com"
+    _subject = "can't parse expected address"
+    
+    @classmethod
+    def sendMail(cls, address):
+        body = "the unparsedAddress is %s at the time %s" %(address.name, address.time)
+        logging.info("the mail's body is %s" %body)
+        mail.send_mail(cls._sender, cls._reciever, cls._subject, body)
